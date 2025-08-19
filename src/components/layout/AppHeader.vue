@@ -3,14 +3,14 @@
         <div class="container">
             <!-- Логотип -->
             <router-link to="/" class="logo">
-                <img src="@/assets/logo.svg" alt="MovieFinder" />
-                <span>MovieFinder</span>
+                <img src="@/assets/logo.svg" alt="Watchary" />
+                <span>Watchary</span>
             </router-link>
 
             <!-- Навигация (десктоп) -->
             <nav class="nav-desktop">
                 <router-link to="/">Главная</router-link>
-                <router-link to="/favorites">Избранное</router-link>
+                <!-- <router-link to="/favorites">Избранное</router-link> -->
                 <SearchInput />
                 <ThemeToggle />
             </nav>
@@ -25,7 +25,7 @@
             <!-- Мобильное меню -->
             <div class="nav-mobile" :class="{ active: isMobileMenuOpen }">
                 <router-link to="/" @click="closeMenu">Главная</router-link>
-                <router-link to="/favorites" @click="closeMenu">Избранное</router-link>
+                <!-- <router-link to="/favorites" @click="closeMenu">Избранное</router-link> -->
                 <SearchInput @search="closeMenu" />
                 <ThemeToggle />
             </div>

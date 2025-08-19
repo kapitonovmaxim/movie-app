@@ -5,18 +5,18 @@
                 <!-- Лого и описание -->
                 <div class="footer-section">
                     <router-link to="/" class="logo">
-                        <img src="@/assets/logo.svg" alt="MovieFinder" />
-                        <span>MovieFinder</span>
+                        <img src="@/assets/logo.svg" alt="Watchary" />
+                        <span>Watchary</span>
                     </router-link>
-                    <p>Лучший способ найти фильмы и сериалы.</p>
+                    <p>Ваша энциклопедия кино.</p>
                 </div>
 
                 <!-- Ссылки -->
                 <div class="footer-section">
                     <h3>Навигация</h3>
                     <router-link to="/">Главная</router-link>
-                    <router-link to="/favorites">Избранное</router-link>
-                    <router-link to="/about">О проекте</router-link>
+                    <!-- <router-link to="/favorites">Избранное</router-link> -->
+                    <!-- <router-link to="/about">О проекте</router-link> -->
                 </div>
 
                 <!-- Соцсети -->
@@ -32,8 +32,11 @@
             <!-- Копирайт -->
             <div class="copyright">
                 <p>
-                    © 2024 MovieFinder. Использует API
-                    <a href="https://www.themoviedb.org/" target="_blank">TMDb</a>.
+                    © 2024 Watchary. Использует API
+                    <a
+                        href="https://www.themoviedb.org/"
+                        target="_blank"
+                    >TMDb</a>.
                 </p>
             </div>
         </div>

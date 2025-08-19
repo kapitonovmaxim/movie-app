@@ -2,15 +2,28 @@
     <div class="home">
         <!-- Шапка с поиском -->
         <header class="header">
-            <h1 class="logo">MovieFinder</h1>
+            <h1 class="logo">Watchary</h1>
             <SearchInput @search="handleSearch" />
         </header>
 
-        <!-- Баннер (опционально) -->
-        <MovieBanner v-if="featuredMovie" :movie="featuredMovie" />
+        <MovieBanner v-if="featuredMovie" :movie="featuredMovie" :loading="bannerLoading" />
 
+        <!-- Секция с трендовыми фильмами -->
+        <section v-if="!bannerLoading" class="trending-section">
+            <h2>Сейчас в тренде</h2>
+            <div class="movie-grid">
+                <MovieCard
+                    v-for="movie in trendingMovies"
+                    :key="movie.id"
+                    :movie="movie"
+                    @click="goToMovie(movie.id)"
+                />
+            </div>
+        </section>
+
+        <div v-if="bannerLoading" class="loading">Загрузка баннера...</div>
         <!-- Фильтры -->
-        <MovieFilters :genres="genres" @filter="applyFilters" />
+        <!-- <MovieFilters :genres="genres" @filter="applyFilters" /> -->
 
         <!-- Список фильмов -->
         <div class="movie-list">
@@ -40,7 +53,7 @@ import SearchInput from '@/components/ui/SearchInput.vue'
 import MovieCard from '@/components/MovieCard.vue'
 // import MovieFilters from '@/components/MovieFilters.vue'
 // import Pagination from '@/components/ui/Pagination.vue'
-// import MovieBanner from '@/components/MovieBanner.vue'
+import MovieBanner from '@/components/MovieBanner.vue'
 
 const router = useRouter()
 const movies = ref([])
@@ -50,13 +63,39 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const searchQuery = ref('')
 
+const trendingMovies = ref([])
+const bannerLoading = ref(false)
+
 // Загрузка данных при монтировании
 onMounted(async () => {
     const [trending, genresList] = await Promise.all([tmdbApi.fetchTrending(), tmdbApi.fetchGenres()])
 
-    movies.value = trending
+    // movies.value = trending
     genres.value = genresList
     featuredMovie.value = trending[0] // Первый фильм в трендах для баннера
+    if (trending.length > 0) {
+        // Берём первый фильм из трендов для баннера
+        const movieId = trending[0].id
+        const movieDetails = await tmdbApi.fetchMovieDetails(movieId)
+        featuredMovie.value = movieDetails
+    }
+    try {
+        bannerLoading.value = true
+
+        // Загружаем трендовые фильмы
+        const trending = await tmdbApi.fetchTrending()
+        trendingMovies.value = trending
+
+        // Берем первый фильм для баннера и загружаем детали
+        if (trending.length > 0) {
+            const movieId = trending[0].id
+            featuredMovie.value = await tmdbApi.fetchMovieDetails(movieId)
+        }
+    } catch (error) {
+        console.error('Error loading home page data:', error)
+    } finally {
+        bannerLoading.value = false
+    }
 })
 
 // Поиск фильмов
@@ -97,7 +136,6 @@ const goToMovie = (id) => {
 .home {
     padding: 20px;
     max-width: 1200px;
-    margin: 0 auto;
 }
 .header {
     display: flex;
@@ -109,5 +147,28 @@ const goToMovie = (id) => {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
+}
+
+.trending-section {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.trending-section h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
 }
 </style>
