@@ -88,5 +88,25 @@ export default {
       console.error('Error fetching now playing movies:', error);
       throw error;
     }
+  },
+
+  async discoverMovies(params = {}) {
+    try {
+      const response = await apiClient.get('/discover/movie', {
+        params: {
+          sort_by: params.sortBy || 'popularity.desc',
+          with_genres: params.genres?.join(',') || '',
+          'vote_average.gte': params.rating || 0,
+          'primary_release_date.gte': params.yearFrom ? `${params.yearFrom}-01-01` : '',
+          'primary_release_date.lte': params.yearTo ? `${params.yearTo}-12-31` : '',
+          page: params.page || 1,
+          ...params
+        }
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error discovering movies:', error)
+      throw error
+    }
   }
 };

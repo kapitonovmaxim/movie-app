@@ -1,15 +1,12 @@
 <template>
     <div class="home">
-        <!-- Шапка с поиском -->
-        <header class="header">
-            <h1 class="logo">Watchary</h1>
-            <SearchInput @search="handleSearch" />
-        </header>
 
         <MovieBanner v-if="featuredMovie" :movie="featuredMovie" :loading="bannerLoading" />
 
+        <MovieFilters @filter="handleFilter" />
+
         <!-- Секция с трендовыми фильмами -->
-        <section v-if="!bannerLoading" class="trending-section">
+        <!-- <section v-if="!bannerLoading" class="trending-section">
             <h2>Сейчас в тренде</h2>
             <div class="movie-grid">
                 <MovieCard
@@ -19,11 +16,11 @@
                     @click="goToMovie(movie.id)"
                 />
             </div>
-        </section>
+        </section> -->
 
-        <div v-if="bannerLoading" class="loading">Загрузка баннера...</div>
+        <!-- <div v-if="bannerLoading" class="loading">Загрузка баннера...</div> -->
         <!-- Фильтры -->
-        <MovieFilters :genres="genres" @filter="applyFilters" />
+        <!-- <MovieFilters :genres="genres" @filter="applyFilters" /> -->
 
         <!-- Список фильмов -->
         <div class="movie-list">
@@ -62,9 +59,12 @@ const genres = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const searchQuery = ref('')
+const currentFilters = ref({})
+const totalResults = ref(0)
 
 const trendingMovies = ref([])
 const bannerLoading = ref(false)
+
 
 // Загрузка данных при монтировании
 onMounted(async () => {
@@ -105,9 +105,16 @@ const handleSearch = async (query) => {
     await loadMovies()
 }
 
-// Применение фильтров
-const applyFilters = (filters) => {
-    console.log('Фильтры:', filters) // Можно добавить логику фильтрации
+// // Применение фильтров
+// const applyFilters = (filters) => {
+//     console.log('Фильтры:', filters) // Можно добавить логику фильтрации
+// }
+
+
+const handleFilter = async (filters) => {
+  currentFilters.value = filters
+  currentPage.value = 1
+  await loadMovies()
 }
 
 // Пагинация
@@ -117,13 +124,28 @@ const changePage = (page) => {
 }
 
 // Загрузка фильмов
-const loadMovies = async () => {
-    const data = searchQuery.value
-        ? await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
-        : await tmdbApi.fetchTrending()
+// const loadMovies = async () => {
+//     const data = searchQuery.value
+//         ? await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
+//         : await tmdbApi.fetchTrending()
 
-    movies.value = data.results || data
-    totalPages.value = data.total_pages || 1
+//     movies.value = data.results || data
+//     totalPages.value = data.total_pages || 1
+// }
+const loadMovies = async () => {
+  try {
+    const params = {
+      ...currentFilters.value,
+      page: currentPage.value
+    }
+
+    const data = await tmdbApi.discoverMovies(params)
+    movies.value = data.results
+    totalResults.value = data.total_results
+    totalPages.value = data.total_pages
+  } catch (error) {
+    console.error('Error loading movies:', error)
+  }
 }
 
 // Переход на страницу фильма
