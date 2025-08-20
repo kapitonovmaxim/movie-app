@@ -23,7 +23,7 @@
 
         <div v-if="bannerLoading" class="loading">Загрузка баннера...</div>
         <!-- Фильтры -->
-        <!-- <MovieFilters :genres="genres" @filter="applyFilters" /> -->
+        <MovieFilters :genres="genres" @filter="applyFilters" />
 
         <!-- Список фильмов -->
         <div class="movie-list">
@@ -36,12 +36,12 @@
         </div>
 
         <!-- Пагинация -->
-        <Pagination
+        <!-- <Pagination
             v-if="totalPages > 1"
             :current-page="currentPage"
             :total-pages="totalPages"
             @page-change="changePage"
-        />
+        /> -->
     </div>
 </template>
 
@@ -51,7 +51,7 @@ import { useRouter } from 'vue-router'
 import tmdbApi from '@/services/tmdbApi'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import MovieCard from '@/components/MovieCard.vue'
-// import MovieFilters from '@/components/MovieFilters.vue'
+import MovieFilters from '@/components/MovieFilters.vue'
 // import Pagination from '@/components/ui/Pagination.vue'
 import MovieBanner from '@/components/MovieBanner.vue'
 
