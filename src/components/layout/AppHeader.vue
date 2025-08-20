@@ -10,6 +10,7 @@
             <!-- Навигация (десктоп) -->
             <nav class="nav-desktop">
                 <router-link to="/">Главная</router-link>
+                <router-link to="/movies">Фильмы</router-link>
                 <!-- <router-link to="/favorites">Избранное</router-link> -->
                 <SearchInput />
                 <ThemeToggle />
@@ -25,6 +26,7 @@
             <!-- Мобильное меню -->
             <div class="nav-mobile" :class="{ active: isMobileMenuOpen }">
                 <router-link to="/" @click="closeMenu">Главная</router-link>
+                <router-link to="/movies" @click="closeMenu">Фильмы</router-link>
                 <!-- <router-link to="/favorites" @click="closeMenu">Избранное</router-link> -->
                 <SearchInput @search="closeMenu" />
                 <ThemeToggle />

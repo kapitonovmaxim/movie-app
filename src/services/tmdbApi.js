@@ -25,6 +25,40 @@ export default {
       throw error;
     }
   },
+async discoverMovies(params = {}) {
+    try {
+      const {
+        sortBy = 'popularity.desc',
+        genres = [],
+        yearFrom = null,
+        yearTo = null,
+        rating = 0,
+        page = 1
+      } = params
+        const query = {
+        sort_by: sortBy,
+        include_adult: false,
+        page
+      }
+        if (genres && genres.length > 0) {
+        query.with_genres = genres.join(',')
+      }
+        if (yearFrom) {
+        query['primary_release_date.gte'] = `${yearFrom}-01-01`
+      }
+        if (yearTo) {
+        query['primary_release_date.lte'] = `${yearTo}-12-31`
+      }
+        if (typeof rating === 'number' && rating > 0) {
+        query['vote_average.gte'] = rating
+      }
+        const response = await apiClient.get('/discover/movie', { params: query })
+      return response.data
+    } catch (error) {
+      console.error('Error discovering movies:', error)
+      throw error
+    }
+  },
 
   // Получить детальную информацию о фильме
   async fetchMovieDetails(movieId) {
@@ -90,23 +124,23 @@ export default {
     }
   },
 
-  async discoverMovies(params = {}) {
-    try {
-      const response = await apiClient.get('/discover/movie', {
-        params: {
-          sort_by: params.sortBy || 'popularity.desc',
-          with_genres: params.genres?.join(',') || '',
-          'vote_average.gte': params.rating || 0,
-          'primary_release_date.gte': params.yearFrom ? `${params.yearFrom}-01-01` : '',
-          'primary_release_date.lte': params.yearTo ? `${params.yearTo}-12-31` : '',
-          page: params.page || 1,
-          ...params
-        }
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error discovering movies:', error)
-      throw error
-    }
-  }
+  // async discoverMovies(params = {}) {
+  //   try {
+  //     const response = await apiClient.get('/discover/movie', {
+  //       params: {
+  //         sort_by: params.sortBy || 'popularity.desc',
+  //         with_genres: params.genres?.join(',') || '',
+  //         'vote_average.gte': params.rating || 0,
+  //         'primary_release_date.gte': params.yearFrom ? `${params.yearFrom}-01-01` : '',
+  //         'primary_release_date.lte': params.yearTo ? `${params.yearTo}-12-31` : '',
+  //         page: params.page || 1,
+  //         ...params
+  //       }
+  //     })
+  //     return response.data
+  //   } catch (error) {
+  //     console.error('Error discovering movies:', error)
+  //     throw error
+  //   }
+  // }
 };

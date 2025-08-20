@@ -3,10 +3,8 @@
 
         <MovieBanner v-if="featuredMovie" :movie="featuredMovie" :loading="bannerLoading" />
 
-        <MovieFilters @filter="handleFilter" />
-
         <!-- Секция с трендовыми фильмами -->
-        <!-- <section v-if="!bannerLoading" class="trending-section">
+        <section v-if="!bannerLoading" class="trending-section">
             <h2>Сейчас в тренде</h2>
             <div class="movie-grid">
                 <MovieCard
@@ -16,29 +14,13 @@
                     @click="goToMovie(movie.id)"
                 />
             </div>
-        </section> -->
+        </section>
 
         <!-- <div v-if="bannerLoading" class="loading">Загрузка баннера...</div> -->
         <!-- Фильтры -->
         <!-- <MovieFilters :genres="genres" @filter="applyFilters" /> -->
 
-        <!-- Список фильмов -->
-        <div class="movie-list">
-            <MovieCard
-                v-for="movie in movies"
-                :key="movie.id"
-                :movie="movie"
-                @click="goToMovie(movie.id)"
-            />
-        </div>
-
-        <!-- Пагинация -->
-        <!-- <Pagination
-            v-if="totalPages > 1"
-            :current-page="currentPage"
-            :total-pages="totalPages"
-            @page-change="changePage"
-        /> -->
+        <!-- Список фильмов и фильтры перенесены на страницу "Фильмы" -->
     </div>
 </template>
 
@@ -46,21 +28,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import tmdbApi from '@/services/tmdbApi'
-import SearchInput from '@/components/ui/SearchInput.vue'
 import MovieCard from '@/components/MovieCard.vue'
-import MovieFilters from '@/components/MovieFilters.vue'
 // import Pagination from '@/components/ui/Pagination.vue'
 import MovieBanner from '@/components/MovieBanner.vue'
 
 const router = useRouter()
-const movies = ref([])
 const featuredMovie = ref(null)
-const genres = ref([])
-const currentPage = ref(1)
-const totalPages = ref(1)
-const searchQuery = ref('')
-const currentFilters = ref({})
-const totalResults = ref(0)
 
 const trendingMovies = ref([])
 const bannerLoading = ref(false)
@@ -68,10 +41,7 @@ const bannerLoading = ref(false)
 
 // Загрузка данных при монтировании
 onMounted(async () => {
-    const [trending, genresList] = await Promise.all([tmdbApi.fetchTrending(), tmdbApi.fetchGenres()])
-
-    // movies.value = trending
-    genres.value = genresList
+    const [trending] = await Promise.all([tmdbApi.fetchTrending()])
     featuredMovie.value = trending[0] // Первый фильм в трендах для баннера
     if (trending.length > 0) {
         // Берём первый фильм из трендов для баннера
@@ -98,55 +68,7 @@ onMounted(async () => {
     }
 })
 
-// Поиск фильмов
-const handleSearch = async (query) => {
-    searchQuery.value = query
-    currentPage.value = 1
-    await loadMovies()
-}
-
-// // Применение фильтров
-// const applyFilters = (filters) => {
-//     console.log('Фильтры:', filters) // Можно добавить логику фильтрации
-// }
-
-
-const handleFilter = async (filters) => {
-  currentFilters.value = filters
-  currentPage.value = 1
-  await loadMovies()
-}
-
-// Пагинация
-const changePage = (page) => {
-    currentPage.value = page
-    loadMovies()
-}
-
-// Загрузка фильмов
-// const loadMovies = async () => {
-//     const data = searchQuery.value
-//         ? await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
-//         : await tmdbApi.fetchTrending()
-
-//     movies.value = data.results || data
-//     totalPages.value = data.total_pages || 1
-// }
-const loadMovies = async () => {
-  try {
-    const params = {
-      ...currentFilters.value,
-      page: currentPage.value
-    }
-
-    const data = await tmdbApi.discoverMovies(params)
-    movies.value = data.results
-    totalResults.value = data.total_results
-    totalPages.value = data.total_pages
-  } catch (error) {
-    console.error('Error loading movies:', error)
-  }
-}
+// С главной удалены поиск/фильтры/пагинация. Остается баннер и блок трендов.
 
 // Переход на страницу фильма
 const goToMovie = (id) => {
