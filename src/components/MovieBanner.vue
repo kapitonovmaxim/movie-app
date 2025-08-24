@@ -19,6 +19,14 @@
                 </button>
 
                 <button
+                    v-if="hasTrailer"
+                    class="btn btn-secondary"
+                    @click="watchTrailer"
+                >
+                    <span>▶️ Смотреть трейлер</span>
+                </button>
+
+                <button
                     class="btn btn-secondary"
                     @click="toggleFavorite"
                     :class="{ favorited: isFavorited }"
@@ -30,14 +38,29 @@
             </div>
         </div>
 
-        <div v-if="isLoading" class="loading-indicator">Загрузка...</div>
+        <div v-if="loading || isLoading" class="loading-indicator">Загрузка...</div>
+
+        <!-- Hidden image for backdrop preloading -->
+        <img
+            :src="backdropUrl"
+            @load="backdropLoaded = true"
+            @error="backdropError = true"
+            style="display: none;"
+            alt=""
+        />
     </div>
+
+    <!-- Trailer Modal -->
+    <Teleport to="body">
+        <TrailerModal v-if="showTrailer" :video-key="trailerKey" @close="showTrailer = false" />
+    </Teleport>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMovieStore } from '@/stores/movieStore'
+import TrailerModal from '@/components/ui/TrailerModal.vue'
 
 const props = defineProps({
     movie: {
@@ -45,15 +68,24 @@ const props = defineProps({
         required: true,
         default: () => ({}),
     },
+    loading: {
+        type: Boolean,
+        default: false,
+    },
 })
 
 const router = useRouter()
 const movieStore = useMovieStore()
 const isLoading = ref(false)
+const showTrailer = ref(false)
+const backdropLoaded = ref(false)
+const backdropError = ref(false)
 
 // Вычисляемые свойства
 const bannerStyle = computed(() => ({
-    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${backdropUrl})`,
+    backgroundImage: backdropLoaded.value && !backdropError.value
+        ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${backdropUrl.value})`
+        : 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4))',
 }))
 
 const backdropUrl = computed(() => {
@@ -82,9 +114,24 @@ const isFavorited = computed(() => {
     return movieStore.favorites.some((fav) => fav.id === props.movie.id)
 })
 
+const hasTrailer = computed(() => {
+    return !!trailerKey.value
+})
+
+const trailerKey = computed(() => {
+    const trailer = props.movie.videos?.results?.find((video) => video.type === 'Trailer' && video.site === 'YouTube')
+    return trailer?.key || null
+})
+
 // Методы
 const goToMovie = () => {
     router.push(`/movie/${props.movie.id}`)
+}
+
+const watchTrailer = () => {
+    if (trailerKey.value) {
+        showTrailer.value = true
+    }
 }
 
 const toggleFavorite = async () => {
@@ -106,16 +153,16 @@ const toggleFavorite = async () => {
 <style scoped>
 .movie-banner {
     position: relative;
-    height: 500px;
+    height: 70vh;
+    min-height: 500px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    margin: 2rem 0;
     display: flex;
     align-items: center;
-    transition: all 0.3s ease;
+    justify-content: center;
+    color: white;
+    overflow: hidden;
 }
 
 .banner-overlay {
@@ -124,63 +171,72 @@ const toggleFavorite = async () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.4) 100%);
+    background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.6) 50%,
+        rgba(0, 0, 0, 0.3) 100%
+    );
 }
 
 .banner-content {
     position: relative;
     z-index: 2;
-    color: white;
+    max-width: 800px;
     padding: 2rem;
-    max-width: 600px;
+    text-align: center;
 }
 
 .banner-title {
-    font-size: 2.5rem;
-    font-weight: bold;
+    font-size: 3.5rem;
+    font-weight: var(--font-weight-bold);
     margin-bottom: 1rem;
     line-height: 1.2;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-family-heading);
 }
 
 .banner-meta {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
 }
 
-.rating,
-.year,
-.genres {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius-md);
-    backdrop-filter: blur(10px);
+.banner-meta span {
+    font-size: 0.9rem;
+    font-weight: var(--font-weight-medium);
+    opacity: 0.9;
 }
 
 .banner-description {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     line-height: 1.6;
     margin-bottom: 2rem;
     opacity: 0.9;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .banner-actions {
     display: flex;
     gap: 1rem;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
 .btn {
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 2rem;
     border: none;
     border-radius: var(--radius-md);
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: all 0.3s ease;
-    display: flex;
+    font-size: 1rem;
+    font-family: var(--font-family-primary);
+    text-decoration: none;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
 }
@@ -193,20 +249,23 @@ const toggleFavorite = async () => {
 .btn-primary:hover {
     background: var(--color-primary-hover);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
 }
 
 .btn-secondary {
     background: rgba(255, 255, 255, 0.2);
     color: white;
-    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 .btn-secondary.favorited {
     background: var(--color-primary);
+    border-color: var(--color-primary);
 }
 
 .loading-indicator {
@@ -214,41 +273,44 @@ const toggleFavorite = async () => {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
+    font-size: 1.2rem;
+    font-weight: var(--font-weight-medium);
     z-index: 3;
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
-    .movie-banner {
-        height: 400px;
+    .banner-title {
+        font-size: 2.5rem;
     }
 
+    .banner-meta {
+        gap: 1rem;
+    }
+
+    .banner-description {
+        font-size: 1rem;
+    }
+
+    .banner-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
     .banner-title {
         font-size: 2rem;
     }
 
     .banner-content {
         padding: 1rem;
-    }
-
-    .banner-actions {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .movie-banner {
-        height: 350px;
-    }
-
-    .banner-title {
-        font-size: 1.5rem;
     }
 
     .banner-meta {

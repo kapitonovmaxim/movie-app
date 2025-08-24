@@ -1,9 +1,9 @@
 <template>
-    <div class="movie-card" @click="handleCardClick">
+    <div class="series-card" @click="$emit('click')">
         <div class="poster-container">
             <img
                 :src="posterUrl"
-                :alt="movie.title"
+                :alt="series.name"
                 class="poster"
                 @load="imageLoaded = true"
                 @error="imageError = true"
@@ -36,83 +36,36 @@
                     </g>
                 </svg>
             </div>
-
-            <!-- Favorite button -->
-            <button
-                v-if="showFavoriteButton"
-                class="favorite-btn"
-                @click.stop="toggleFavorite"
-                :class="{ 'favorited': isInFavorites }"
-                :title="isInFavorites ? 'Удалить из избранного' : 'Добавить в избранное'"
-            >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                          :fill="isInFavorites ? 'var(--color-primary)' : 'none'"
-                          stroke="var(--color-primary)"
-                          stroke-width="2"/>
-                </svg>
-            </button>
-
-            <!-- Remove button -->
-            <button
-                v-if="showRemoveButton"
-                class="remove-btn"
-                @click.stop="removeFromFavorites"
-                title="Удалить из избранного"
-            >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" fill="var(--color-error)" opacity="0.9"/>
-                    <path d="M8 8 L16 16 M16 8 L8 16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
         </div>
 
         <div class="details">
-            <h3>{{ movie.title }}</h3>
-            <p class="year">{{ movie.release_date?.split('-')[0] }}</p>
-            <p class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</p>
+            <h3>{{ series.name }}</h3>
+            <p class="year">{{ series.first_air_date?.split('-')[0] }}</p>
+            <p class="rating">⭐ {{ series.vote_average?.toFixed(1) }}</p>
+            <p v-if="series.episode_run_time?.length" class="episodes">
+                {{ series.number_of_seasons }} сезон(ов)
+            </p>
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useMovieStore } from '@/stores/movieStore'
 
 const props = defineProps({
-    movie: { type: Object, required: true },
-    showFavoriteButton: { type: Boolean, default: false },
-    showRemoveButton: { type: Boolean, default: false }
+    series: { type: Object, required: true },
 })
 
-const emit = defineEmits(['click', 'remove-from-favorites'])
-
-const movieStore = useMovieStore()
 const imageLoaded = ref(false)
 const imageError = ref(false)
 
 const posterUrl = computed(() =>
-    props.movie.poster_path ? `https://image.tmdb.org/t/p/w300${props.movie.poster_path}` : '/placeholder-poster.jpg'
+    props.series.poster_path ? `https://image.tmdb.org/t/p/w300${props.series.poster_path}` : '/placeholder-poster.jpg'
 )
-
-const isInFavorites = computed(() => movieStore.isInFavorites(props.movie.id))
-
-const handleCardClick = () => {
-    emit('click')
-}
-
-const toggleFavorite = () => {
-    movieStore.toggleFavorite(props.movie)
-}
-
-const removeFromFavorites = () => {
-    movieStore.removeFromFavorites(props.movie.id)
-    emit('remove-from-favorites', props.movie.id)
-}
 </script>
 
 <style scoped>
-.movie-card {
+.series-card {
     cursor: pointer;
     transition: transform 0.2s;
     background: var(--color-bg-secondary);
@@ -124,7 +77,7 @@ const removeFromFavorites = () => {
     flex-direction: column;
 }
 
-.movie-card:hover {
+.series-card:hover {
     transform: scale(1.05);
     box-shadow: var(--shadow-md);
 }
@@ -202,44 +155,10 @@ const removeFromFavorites = () => {
     color: var(--color-text);
 }
 
-.favorite-btn,
-.remove-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.favorite-btn:hover,
-.remove-btn:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.1);
-}
-
-.favorite-btn.favorited {
-    background: rgba(var(--color-primary-rgb), 0.9);
-}
-
-.favorite-btn.favorited:hover {
-    background: rgba(var(--color-primary-rgb), 1);
-}
-
-.remove-btn {
-    background: rgba(var(--color-error-rgb), 0.9);
-}
-
-.remove-btn:hover {
-    background: rgba(var(--color-error-rgb), 1);
+.details .episodes {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
 }
 
 /* Responsive adjustments */

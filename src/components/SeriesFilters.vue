@@ -1,5 +1,5 @@
 <template>
-    <div class="movie-filters">
+    <div class="series-filters">
         <!-- Сортировка -->
         <div class="filter-group">
             <label class="filter-label">Сортировка</label>
@@ -8,10 +8,10 @@
                 <option value="popularity.asc">По популярности (возр.)</option>
                 <option value="vote_average.desc">По рейтингу (убыв.)</option>
                 <option value="vote_average.asc">По рейтингу (возр.)</option>
-                <option value="release_date.desc">По дате (новые)</option>
-                <option value="release_date.asc">По дате (старые)</option>
-                <option value="title.asc">По названию (А-Я)</option>
-                <option value="title.desc">По названию (Я-А)</option>
+                <option value="first_air_date.desc">По дате (новые)</option>
+                <option value="first_air_date.asc">По дате (старые)</option>
+                <option value="name.asc">По названию (А-Я)</option>
+                <option value="name.desc">По названию (Я-А)</option>
             </select>
         </div>
 
@@ -99,64 +99,6 @@
             </select>
         </div>
 
-        <!-- Длительность -->
-        <div class="filter-group">
-            <label class="filter-label">Длительность</label>
-            <div class="duration-options">
-                <label class="duration-option">
-                    <input
-                        type="radio"
-                        v-model="filters.duration"
-                        value=""
-                        @change="applyFilters"
-                    />
-                    <span>Любая</span>
-                </label>
-                <label class="duration-option">
-                    <input
-                        type="radio"
-                        v-model="filters.duration"
-                        value="short"
-                        @change="applyFilters"
-                    />
-                    <span>До 90 мин</span>
-                </label>
-                <label class="duration-option">
-                    <input
-                        type="radio"
-                        v-model="filters.duration"
-                        value="medium"
-                        @change="applyFilters"
-                    />
-                    <span>90-120 мин</span>
-                </label>
-                <label class="duration-option">
-                    <input
-                        type="radio"
-                        v-model="filters.duration"
-                        value="long"
-                        @change="applyFilters"
-                    />
-                    <span>Более 120 мин</span>
-                </label>
-            </div>
-        </div>
-
-        <!-- Статус -->
-        <div class="filter-group">
-            <label class="filter-label">Статус</label>
-            <div class="status-options">
-                <label class="status-option">
-                    <input
-                        type="checkbox"
-                        v-model="filters.includeAdult"
-                        @change="applyFilters"
-                    />
-                    <span>Включая 18+</span>
-                </label>
-            </div>
-        </div>
-
         <!-- Кнопки действий -->
         <div class="filter-actions">
             <button class="btn btn-secondary" @click="resetFilters">
@@ -211,14 +153,6 @@
                 >
                     Язык: {{ getLanguageName(filters.language) }} ❌
                 </span>
-
-                <span
-                    v-if="filters.duration"
-                    class="active-tag"
-                    @click="removeFilter('duration')"
-                >
-                    {{ getDurationName(filters.duration) }} ❌
-                </span>
             </div>
         </div>
     </div>
@@ -243,17 +177,15 @@ const filters = reactive({
     yearTo: null,
     rating: 0,
     language: '',
-    duration: '',
-    includeAdult: false,
     page: 1
 })
 
 // Загрузка жанров при монтировании
 onMounted(async () => {
     try {
-        genres.value = await tmdbApi.fetchGenres()
+        genres.value = await tmdbApi.fetchTVGenres()
     } catch (error) {
-        console.error('Error loading genres:', error)
+        console.error('Error loading TV genres:', error)
     }
 })
 
@@ -265,7 +197,6 @@ const hasActiveFilters = computed(() => {
         filters.yearTo !== null ||
         filters.rating > 0 ||
         filters.language !== '' ||
-        filters.duration !== '' ||
         filters.sortBy !== 'popularity.desc'
     )
 })
@@ -291,15 +222,6 @@ const getLanguageName = (code) => {
     return languages[code] || code
 }
 
-const getDurationName = (duration) => {
-    const durations = {
-        short: 'До 90 мин',
-        medium: '90-120 мин',
-        long: 'Более 120 мин'
-    }
-    return durations[duration] || duration
-}
-
 const applyFilters = () => {
     const validatedFilters = { ...filters }
 
@@ -323,8 +245,6 @@ const resetFilters = () => {
     filters.yearTo = null
     filters.rating = 0
     filters.language = ''
-    filters.duration = ''
-    filters.includeAdult = false
     filters.page = 1
 
     applyFilters()
@@ -339,8 +259,6 @@ const removeFilter = (filterKey) => {
         filters.rating = 0
     } else if (filterKey === 'language') {
         filters.language = ''
-    } else if (filterKey === 'duration') {
-        filters.duration = ''
     }
     applyFilters()
 }
@@ -352,7 +270,7 @@ const removeGenreFilter = (genreId) => {
 </script>
 
 <style scoped>
-.movie-filters {
+.series-filters {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -477,40 +395,6 @@ const removeGenreFilter = (genreId) => {
     font-size: 0.75rem;
     color: var(--color-text-secondary);
     margin-top: 0.25rem;
-}
-
-.duration-options,
-.status-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.duration-option,
-.status-option {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: var(--radius-md);
-    transition: background-color 0.2s ease;
-}
-
-.duration-option:hover,
-.status-option:hover {
-    background: var(--color-bg-tertiary);
-}
-
-.duration-option input,
-.status-option input {
-    margin: 0;
-}
-
-.duration-option span,
-.status-option span {
-    font-size: 0.85rem;
-    font-weight: var(--font-weight-medium);
 }
 
 .filter-actions {

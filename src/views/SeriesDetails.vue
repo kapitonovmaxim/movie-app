@@ -1,15 +1,15 @@
 <template>
-    <div class="movie-details" v-if="movie">
-        <div class="movie-backdrop" :style="backdropStyle"></div>
+    <div class="series-details" v-if="series">
+        <div class="series-backdrop" :style="backdropStyle"></div>
 
-        <div class="movie-content">
+        <div class="series-content">
             <!-- Основная информация -->
-            <div class="movie-header">
+            <div class="series-header">
                 <div class="poster-container">
                     <img
                         :src="posterUrl"
-                        :alt="movie.title"
-                        class="movie-poster"
+                        :alt="series.name"
+                        class="series-poster"
                         @load="posterLoaded = true"
                         @error="posterError = true"
                         :class="{ 'loaded': posterLoaded, 'error': posterError }"
@@ -43,19 +43,20 @@
                     </div>
                 </div>
 
-                <div class="movie-info">
-                    <h1 class="movie-title">{{ movie.title }}</h1>
+                <div class="series-info">
+                    <h1 class="series-title">{{ series.name }}</h1>
 
-                    <div class="movie-meta">
-                        <span class="release-year">{{ releaseYear }}</span>
-                        <span class="runtime">{{ formattedRuntime }}</span>
-                        <span class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</span>
-                        <span class="vote-count">({{ movie.vote_count }} оценок)</span>
+                    <div class="series-meta">
+                        <span class="air-year">{{ airYear }}</span>
+                        <span class="seasons-count" v-if="series.number_of_seasons">{{ series.number_of_seasons }} сезонов</span>
+                        <span class="episodes-count" v-if="series.number_of_episodes">{{ series.number_of_episodes }} эпизодов</span>
+                        <span class="rating">⭐ {{ series.vote_average?.toFixed(1) }}</span>
+                        <span class="vote-count">({{ series.vote_count }} оценок)</span>
                     </div>
 
-                    <div class="genres">
+                    <div class="genres" v-if="series.genres">
                         <span
-                            v-for="genre in movie.genres"
+                            v-for="genre in series.genres"
                             :key="genre.id"
                             class="genre-tag"
                         >{{ genre.name }}</span>
@@ -78,9 +79,9 @@
             </div>
 
             <!-- Описание -->
-            <section class="movie-description">
+            <section class="series-description">
                 <h2>Описание</h2>
-                <p>{{ movie.overview || 'Описание отсутствует' }}</p>
+                <p>{{ series.overview || 'Описание отсутствует' }}</p>
             </section>
 
             <!-- Актерский состав -->
@@ -102,15 +103,36 @@
                 </div>
             </section>
 
-            <!-- Похожие фильмы -->
-            <section class="similar-movies" v-if="similarMovies.length > 0">
-                <h2>Похожие фильмы</h2>
+            <!-- Сезоны -->
+            <section class="seasons-section" v-if="series.seasons && series.seasons.length > 0">
+                <h2>Сезоны</h2>
+                <div class="seasons-grid">
+                    <div v-for="season in series.seasons" :key="season.id" class="season-card">
+                        <img
+                            :src="seasonPosterUrl(season)"
+                            :alt="season.name"
+                            class="season-poster"
+                            @error="handleSeasonImageError"
+                        />
+                        <div class="season-info">
+                            <h4>{{ season.name }}</h4>
+                            <p v-if="season.air_date">{{ new Date(season.air_date).getFullYear() }}</p>
+                            <p v-if="season.episode_count">{{ season.episode_count }} эпизодов</p>
+                            <p v-if="season.overview" class="season-overview">{{ season.overview }}</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Похожие сериалы -->
+            <section class="similar-series" v-if="similarSeries.length > 0">
+                <h2>Похожие сериалы</h2>
                 <div class="similar-grid">
-                    <MovieCard
-                        v-for="similarMovie in similarMovies.slice(0, 6)"
-                        :key="similarMovie.id"
-                        :movie="similarMovie"
-                        @click="goToMovie(similarMovie.id)"
+                    <SeriesCard
+                        v-for="similarShow in similarSeries.slice(0, 6)"
+                        :key="similarShow.id"
+                        :series="similarShow"
+                        @click="goToSeries(similarShow.id)"
                     />
                 </div>
             </section>
@@ -120,20 +142,36 @@
                 <h2>Детали</h2>
                 <div class="info-grid">
                     <div class="info-item">
-                        <strong>Бюджет:</strong>
-                        <span>{{ formattedBudget }}</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>Сборы:</strong>
-                        <span>{{ formattedRevenue }}</span>
-                    </div>
-                    <div class="info-item">
                         <strong>Статус:</strong>
-                        <span>{{ movie.status }}</span>
+                        <span>{{ series.status }}</span>
                     </div>
                     <div class="info-item">
                         <strong>Оригинальный язык:</strong>
                         <span>{{ originalLanguage }}</span>
+                    </div>
+                    <div class="info-item" v-if="series.networks && series.networks.length > 0">
+                        <strong>Сеть:</strong>
+                        <span>{{ series.networks.map(network => network.name).join(', ') }}</span>
+                    </div>
+                    <div class="info-item" v-if="series.type">
+                        <strong>Тип:</strong>
+                        <span>{{ series.type }}</span>
+                    </div>
+                    <div class="info-item" v-if="series.original_name && series.original_name !== series.name">
+                        <strong>Оригинальное название:</strong>
+                        <span>{{ series.original_name }}</span>
+                    </div>
+                    <div class="info-item" v-if="series.first_air_date">
+                        <strong>Премьера:</strong>
+                        <span>{{ new Date(series.first_air_date).toLocaleDateString('ru-RU') }}</span>
+                    </div>
+                    <div class="info-item" v-if="series.last_air_date">
+                        <strong>Последний эпизод:</strong>
+                        <span>{{ new Date(series.last_air_date).toLocaleDateString('ru-RU') }}</span>
+                    </div>
+                    <div class="info-item" v-if="series.episode_run_time && series.episode_run_time.length > 0">
+                        <strong>Длительность эпизода:</strong>
+                        <span>{{ series.episode_run_time[0] }} мин</span>
                     </div>
                 </div>
             </section>
@@ -147,12 +185,12 @@
         <!-- Загрузка -->
         <div v-if="loading" class="loading-overlay">
             <div class="loading-spinner"></div>
-            <p>Загрузка деталей фильма...</p>
+            <p>Загрузка деталей сериала...</p>
         </div>
     </div>
 
     <div v-else-if="error" class="error-state">
-        <h2>Фильм не найден</h2>
+        <h2>Сериал не найден</h2>
         <p>Возможно, он был удален или произошла ошибка загрузки.</p>
         <button class="btn btn-primary" @click="$router.push('/')">На главную</button>
     </div>
@@ -163,22 +201,22 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMovieStore } from '@/stores/movieStore'
 import tmdbApi from '@/services/tmdbApi'
-import MovieCard from '@/components/MovieCard.vue'
+import SeriesCard from '@/components/SeriesCard.vue'
 import TrailerModal from '@/components/ui/TrailerModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const movieStore = useMovieStore()
 
-const movie = ref(null)
+const series = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const showTrailer = ref(false)
 const posterLoaded = ref(false)
 const posterError = ref(false)
 
-// Получаем ID фильма из параметров маршрута
-const movieId = computed(() => route.params.id)
+// Получаем ID сериала из параметров маршрута
+const seriesId = computed(() => route.params.id)
 
 // Вычисляемые свойства
 const backdropStyle = computed(() => ({
@@ -186,36 +224,29 @@ const backdropStyle = computed(() => ({
 }))
 
 const backdropUrl = computed(() => {
-    if (!movie.value?.backdrop_path) return '/placeholder-backdrop.jpg'
-    return `https://image.tmdb.org/t/p/w1280${movie.value.backdrop_path}`
+    if (!series.value?.backdrop_path) return '/placeholder-backdrop.jpg'
+    return `https://image.tmdb.org/t/p/w1280${series.value.backdrop_path}`
 })
 
 const posterUrl = computed(() => {
-    if (!movie.value?.poster_path) return '/placeholder-poster.jpg'
-    return `https://image.tmdb.org/t/p/w500${movie.value.poster_path}`
+    if (!series.value?.poster_path) return '/placeholder-poster.jpg'
+    return `https://image.tmdb.org/t/p/w500${series.value.poster_path}`
 })
 
-const releaseYear = computed(() => {
-    return movie.value?.release_date?.split('-')[0] || 'Неизвестно'
-})
-
-const formattedRuntime = computed(() => {
-    if (!movie.value?.runtime) return 'Неизвестно'
-    const hours = Math.floor(movie.value.runtime / 60)
-    const minutes = movie.value.runtime % 60
-    return `${hours}ч ${minutes}мин`
+const airYear = computed(() => {
+    return series.value?.first_air_date?.split('-')[0] || 'Неизвестно'
 })
 
 const cast = computed(() => {
-    return movie.value?.credits?.cast || []
+    return series.value?.credits?.cast || []
 })
 
 const mainCast = computed(() => {
     return cast.value.slice(0, 12) // Первые 12 актеров
 })
 
-const similarMovies = computed(() => {
-    return movie.value?.similar?.results || []
+const similarSeries = computed(() => {
+    return series.value?.similar?.results || []
 })
 
 const hasTrailer = computed(() => {
@@ -223,28 +254,12 @@ const hasTrailer = computed(() => {
 })
 
 const trailerKey = computed(() => {
-    const trailer = movie.value?.videos?.results?.find((video) => video.type === 'Trailer' && video.site === 'YouTube')
+    const trailer = series.value?.videos?.results?.find((video) => video.type === 'Trailer' && video.site === 'YouTube')
     return trailer?.key || null
 })
 
 const isFavorited = computed(() => {
-    return movieStore.isInFavorites(movie.value?.id)
-})
-
-const formattedBudget = computed(() => {
-    if (!movie.value?.budget) return 'Неизвестно'
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'USD',
-    }).format(movie.value.budget)
-})
-
-const formattedRevenue = computed(() => {
-    if (!movie.value?.revenue) return 'Неизвестно'
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'USD',
-    }).format(movie.value.revenue)
+    return movieStore.favorites.some((fav) => fav.id === series.value?.id)
 })
 
 const originalLanguage = computed(() => {
@@ -258,21 +273,21 @@ const originalLanguage = computed(() => {
         ko: 'Корейский',
         zh: 'Китайский',
     }
-    return languages[movie.value?.original_language] || movie.value?.original_language || 'Неизвестно'
+    return languages[series.value?.original_language] || series.value?.original_language || 'Неизвестно'
 })
 
 // Методы
-const loadMovieDetails = async () => {
+const loadSeriesDetails = async () => {
     loading.value = true
     error.value = null
 
     try {
-        const data = await tmdbApi.fetchMovieDetails(movieId.value)
-        movie.value = data
+        const data = await tmdbApi.fetchTVShowDetails(seriesId.value)
+        series.value = data
         movieStore.setCurrentMovie(data)
     } catch (err) {
-        console.error('Error loading movie details:', err)
-        error.value = 'Не удалось загрузить информацию о фильме'
+        console.error('Error loading series details:', err)
+        error.value = 'Не удалось загрузить информацию о сериале'
     } finally {
         loading.value = false
     }
@@ -285,12 +300,17 @@ const watchTrailer = () => {
 }
 
 const toggleFavorite = () => {
-    if (!movie.value) return
-    movieStore.toggleFavorite(movie.value)
+    if (!series.value) return
+
+    if (isFavorited.value) {
+        movieStore.removeFromFavorites(series.value.id)
+    } else {
+        movieStore.addToFavorites(series.value)
+    }
 }
 
-const goToMovie = (id) => {
-    router.push(`/movie/${id}`)
+const goToSeries = (id) => {
+    router.push(`/series/${id}`)
 }
 
 const actorProfileUrl = (actor) => {
@@ -298,33 +318,38 @@ const actorProfileUrl = (actor) => {
     return `https://image.tmdb.org/t/p/w200${actor.profile_path}`
 }
 
-const handleImageError = (event) => {
-    event.target.src = '/placeholder-poster.jpg'
+const seasonPosterUrl = (season) => {
+    if (!season.poster_path) return '/placeholder-poster.jpg'
+    return `https://image.tmdb.org/t/p/w200${season.poster_path}`
 }
 
 const handleCastImageError = (event) => {
     event.target.src = '/placeholder-avatar.jpg'
 }
 
+const handleSeasonImageError = (event) => {
+    event.target.src = '/placeholder-poster.jpg'
+}
+
 // Загрузка данных при монтировании и изменении ID
 onMounted(() => {
-    loadMovieDetails()
+    loadSeriesDetails()
 })
 
-watch(movieId, (newId) => {
+watch(seriesId, (newId) => {
     if (newId) {
-        loadMovieDetails()
+        loadSeriesDetails()
     }
 })
 </script>
 
 <style scoped>
-.movie-details {
+.series-details {
     min-height: 100vh;
     position: relative;
 }
 
-.movie-backdrop {
+.series-backdrop {
     position: fixed;
     top: 0;
     left: 0;
@@ -336,7 +361,7 @@ watch(movieId, (newId) => {
     opacity: 0.3;
 }
 
-.movie-content {
+.series-content {
     position: relative;
     z-index: 1;
     background: linear-gradient(transparent, var(--color-bg) 20%);
@@ -345,12 +370,11 @@ watch(movieId, (newId) => {
     margin: 0 auto;
 }
 
-.movie-header {
+.series-header {
     display: grid;
     grid-template-columns: 300px 1fr;
     gap: 2rem;
     margin-bottom: 3rem;
-    align-items: start;
 }
 
 .poster-container {
@@ -358,52 +382,53 @@ watch(movieId, (newId) => {
     width: 300px;
     height: 450px;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
     overflow: hidden;
-    background-color: var(--color-bg-secondary);
+    background: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.movie-poster {
+.series-poster {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: opacity 0.3s ease;
 }
 
-.movie-poster.loaded {
+.series-poster.loaded {
     opacity: 1;
 }
 
-.movie-poster.error {
+.series-poster.error {
     opacity: 0.5;
 }
 
-.poster-placeholder {
+.poster-placeholder,
+.poster-error {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    background-color: var(--color-bg-secondary);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    justify-content: center;
 }
 
-.movie-info {
+.series-info {
     color: var(--color-text);
 }
 
-.movie-title {
-    font-size: 2.5rem;
-    font-weight: bold;
+.series-title {
+    font-size: 3rem;
     margin-bottom: 1rem;
-    line-height: 1.2;
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-heading);
+    color: var(--color-text);
 }
 
-.movie-meta {
+.series-meta {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
@@ -411,11 +436,17 @@ watch(movieId, (newId) => {
     align-items: center;
 }
 
-.movie-meta span {
+.series-meta span {
+    padding: 0.25rem 0.75rem;
     background: var(--color-bg-secondary);
-    padding: 0.5rem 1rem;
     border-radius: var(--radius-md);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+}
+
+.rating {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
 }
 
 .genres {
@@ -426,26 +457,29 @@ watch(movieId, (newId) => {
 }
 
 .genre-tag {
+    padding: 0.25rem 0.75rem;
     background: var(--color-primary);
     color: white;
-    padding: 0.5rem 1rem;
     border-radius: var(--radius-md);
     font-size: 0.9rem;
+    font-weight: var(--font-weight-medium);
 }
 
 .action-buttons {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2rem;
+    flex-wrap: wrap;
 }
 
 .btn {
-    padding: 1rem 2rem;
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: var(--radius-md);
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: all 0.3s ease;
+    font-family: var(--font-family-primary);
+    font-size: 1rem;
 }
 
 .btn-primary {
@@ -461,53 +495,49 @@ watch(movieId, (newId) => {
 .btn-secondary {
     background: var(--color-bg-secondary);
     color: var(--color-text);
-    border: 2px solid var(--color-border);
+    border: 1px solid var(--color-border);
 }
 
-.btn-secondary:hover,
+.btn-secondary:hover {
+    background: var(--color-border);
+}
+
 .btn-secondary.btn-active {
     background: var(--color-primary);
-    color: white;
     border-color: var(--color-primary);
+    color: white;
 }
 
-.movie-description {
-    margin-bottom: 3rem;
-    max-width: 800px;
-}
-
-.movie-description h2 {
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-}
-
-.movie-description p {
-    line-height: 1.6;
-    font-size: 1.1rem;
-}
-
-.cast-section,
-.similar-movies,
-.additional-info {
+/* Секции */
+section {
     margin-bottom: 3rem;
 }
 
-.cast-section h2,
-.similar-movies h2,
-.additional-info h2 {
+section h2 {
+    font-size: 1.8rem;
     margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
 }
 
+.series-description p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text);
+}
+
+/* Актерский состав */
 .cast-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
 }
 
 .cast-card {
     background: var(--color-bg-secondary);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     transition: transform 0.3s ease;
 }
@@ -528,58 +558,117 @@ watch(movieId, (newId) => {
 
 .cast-info h4 {
     margin: 0 0 0.5rem 0;
-    font-size: 0.9rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
 }
 
 .cast-info p {
     margin: 0;
-    font-size: 0.8rem;
     color: var(--color-text-secondary);
+    font-size: 0.9rem;
 }
 
+/* Сезоны */
+.seasons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.season-card {
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.season-card:hover {
+    transform: translateY(-5px);
+}
+
+.season-poster {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.season-info {
+    padding: 1rem;
+}
+
+.season-info h4 {
+    margin: 0 0 0.5rem 0;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+}
+
+.season-info p {
+    margin: 0 0 0.25rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.season-overview {
+    margin-top: 0.5rem !important;
+    font-size: 0.8rem !important;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Похожие сериалы */
 .similar-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
 }
 
+/* Дополнительная информация */
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1rem;
 }
 
 .info-item {
-    background: var(--color-bg-secondary);
+    display: flex;
+    justify-content: space-between;
     padding: 1rem;
+    background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
+    border-left: 4px solid var(--color-primary);
 }
 
 .info-item strong {
-    display: block;
-    margin-bottom: 0.5rem;
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+}
+
+.info-item span {
     color: var(--color-text-secondary);
 }
 
+/* Загрузка и ошибки */
 .loading-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    width: 100%;
+    height: 100%;
+    background: var(--color-bg);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    color: white;
+    justify-content: center;
     z-index: 1000;
 }
 
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 3px solid transparent;
+    border: 3px solid var(--color-border);
     border-top: 3px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -587,17 +676,17 @@ watch(movieId, (newId) => {
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
     text-align: center;
-    padding: 3rem;
     color: var(--color-text);
 }
 
@@ -606,51 +695,39 @@ watch(movieId, (newId) => {
     color: var(--color-error);
 }
 
+.error-state p {
+    margin-bottom: 2rem;
+    color: var(--color-text-secondary);
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
-    .movie-content {
-        padding: 1rem;
-    }
-
-    .movie-header {
+    .series-header {
         grid-template-columns: 1fr;
         text-align: center;
     }
 
-    .poster-container {
-        width: 250px;
-        height: 375px;
-    }
-
-    .movie-title {
+    .series-title {
         font-size: 2rem;
     }
 
     .action-buttons {
-        flex-direction: column;
+        justify-content: center;
     }
 
-    .cast-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-
+    .cast-grid,
+    .seasons-grid,
     .similar-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
-}
 
-@media (max-width: 480px) {
-    .movie-title {
-        font-size: 1.5rem;
+    .info-grid {
+        grid-template-columns: 1fr;
     }
 
-    .movie-meta {
+    .info-item {
         flex-direction: column;
         gap: 0.5rem;
-    }
-
-    .cast-grid {
-        grid-template-columns: repeat(2, 1fr);
     }
 }
 </style>

@@ -1,36 +1,35 @@
 <template>
-    <div class="movies">
-        <h1 class="page-title">Фильмы</h1>
+    <div class="series">
+        <h1 class="page-title">Сериалы</h1>
 
-        <div class="movies-layout">
+        <div class="series-layout">
             <!-- Sidebar with filters -->
             <Sidebar>
-                <MovieFilters @filter="handleFilter" />
+                <SeriesFilters @filter="handleFilter" />
             </Sidebar>
 
             <!-- Main content -->
-            <div class="movies-content">
+            <div class="series-content">
                 <div class="summary" v-if="totalResults > 0">
                     Найдено: {{ totalResults.toLocaleString() }}
                 </div>
 
                 <div v-if="loading" class="loading">
                     <div class="loading-spinner"></div>
-                    <p>Загрузка фильмов...</p>
+                    <p>Загрузка сериалов...</p>
                 </div>
 
-                <div v-else-if="movies.length === 0" class="no-results">
-                    <p>Фильмы не найдены</p>
+                <div v-else-if="series.length === 0" class="no-results">
+                    <p>Сериалы не найдены</p>
                     <p>Попробуйте изменить фильтры</p>
                 </div>
 
-                <div v-else class="movie-list">
-                    <MovieCard
-                        v-for="movie in movies"
-                        :key="movie.id"
-                        :movie="movie"
-                        :show-favorite-button="true"
-                        @click="goToMovie(movie.id)"
+                <div v-else class="series-list">
+                    <SeriesCard
+                        v-for="show in series"
+                        :key="show.id"
+                        :series="show"
+                        @click="goToSeries(show.id)"
                     />
                 </div>
 
@@ -48,13 +47,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import tmdbApi from '@/services/tmdbApi'
-import MovieFilters from '@/components/MovieFilters.vue'
-import MovieCard from '@/components/MovieCard.vue'
+import SeriesFilters from '@/components/SeriesFilters.vue'
+import SeriesCard from '@/components/SeriesCard.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 
 const router = useRouter()
 
-const movies = ref([])
+const series = ref([])
 const totalResults = ref(0)
 const totalPages = ref(1)
 const currentPage = ref(1)
@@ -64,19 +63,19 @@ const loading = ref(false)
 const handleFilter = async (filters) => {
     currentFilters.value = filters
     currentPage.value = 1
-    await loadMovies()
+    await loadSeries()
 }
 
 const changePage = async (page) => {
     currentPage.value = page
-    await loadMovies()
+    await loadSeries()
 }
 
 onMounted(() => {
-    loadMovies()
+    loadSeries()
 })
 
-const loadMovies = async () => {
+const loadSeries = async () => {
     loading.value = true
 
     try {
@@ -84,15 +83,15 @@ const loadMovies = async () => {
             ...currentFilters.value,
             page: currentPage.value
         }
-        const data = await tmdbApi.discoverMovies(params)
+        const data = await tmdbApi.discoverTVShows(params)
 
-        movies.value = data.results || []
+        series.value = data.results || []
         totalResults.value = data.total_results || 0
         totalPages.value = data.total_pages || 1
 
     } catch (error) {
-        console.error('Error loading movies:', error)
-        movies.value = []
+        console.error('Error loading series:', error)
+        series.value = []
         totalResults.value = 0
         totalPages.value = 1
     } finally {
@@ -100,13 +99,13 @@ const loadMovies = async () => {
     }
 }
 
-const goToMovie = (id) => {
-    router.push(`/movie/${id}`)
+const goToSeries = (id) => {
+    router.push(`/series/${id}`)
 }
 </script>
 
 <style scoped>
-.movies {
+.series {
     padding: 20px 0;
     color: var(--color-text);
 }
@@ -119,14 +118,14 @@ const goToMovie = (id) => {
     font-family: var(--font-family-heading);
 }
 
-.movies-layout {
+.series-layout {
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 2rem;
     align-items: start;
 }
 
-.movies-content {
+.series-content {
     min-height: 500px;
 }
 
@@ -171,7 +170,7 @@ const goToMovie = (id) => {
     margin: 0.5rem 0;
 }
 
-.movie-list {
+.series-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
@@ -215,7 +214,7 @@ const goToMovie = (id) => {
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-    .movies-layout {
+    .series-layout {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
@@ -225,21 +224,19 @@ const goToMovie = (id) => {
         font-size: 2rem;
     }
 
-    .movie-list {
+    .series-list {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .movies {
+    .series {
         padding: 10px 0;
     }
 
-    .movie-list {
+    .series-list {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 </style>
-
-

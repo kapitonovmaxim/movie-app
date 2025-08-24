@@ -17,7 +17,7 @@
 }
 
 .swiper-pagination-bullet-active {
-  background: #e50914;
+  background: var(--color-primary);
   transform: scale(1.2);
 }
 

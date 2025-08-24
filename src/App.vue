@@ -28,11 +28,73 @@ const isFullscreenPage = computed(() => route.meta.hideLayout || false)
 @import '@/assets/styles/var.css';
 
 :root {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.5;
+    font-family: var(--font-family-primary);
+    line-height: 1.6;
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    font-weight: var(--font-weight-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-normal);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.2;
+    margin: 0;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: var(--font-weight-semibold);
+}
+
+h3 {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-medium);
+}
+
+h4 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-medium);
+}
+
+p {
+    margin: 0 0 1rem 0;
+    line-height: 1.6;
+}
+
+/* Button typography */
+button {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Input typography */
+input, select, textarea {
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-normal);
 }
 
 .fade-enter-active,
@@ -48,8 +110,10 @@ const isFullscreenPage = computed(() => route.meta.hideLayout || false)
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    max-width: 1200px;
+    max-width: 1560px;
     margin: 0 auto;
     padding: 0 20px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
 }
 </style>

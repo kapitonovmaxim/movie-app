@@ -11,16 +11,14 @@
                     v-for="movie in trendingMovies"
                     :key="movie.id"
                     :movie="movie"
+                    :show-favorite-button="true"
                     @click="goToMovie(movie.id)"
                 />
             </div>
         </section>
 
-        <!-- <div v-if="bannerLoading" class="loading">Загрузка баннера...</div> -->
-        <!-- Фильтры -->
-        <!-- <MovieFilters :genres="genres" @filter="applyFilters" /> -->
+        <div v-if="bannerLoading" class="loading">Загрузка баннера...</div>
 
-        <!-- Список фильмов и фильтры перенесены на страницу "Фильмы" -->
     </div>
 </template>
 
@@ -41,14 +39,6 @@ const bannerLoading = ref(false)
 
 // Загрузка данных при монтировании
 onMounted(async () => {
-    const [trending] = await Promise.all([tmdbApi.fetchTrending()])
-    featuredMovie.value = trending[0] // Первый фильм в трендах для баннера
-    if (trending.length > 0) {
-        // Берём первый фильм из трендов для баннера
-        const movieId = trending[0].id
-        const movieDetails = await tmdbApi.fetchMovieDetails(movieId)
-        featuredMovie.value = movieDetails
-    }
     try {
         bannerLoading.value = true
 
@@ -80,17 +70,7 @@ const goToMovie = (id) => {
 .home {
     padding: 20px;
     max-width: 1200px;
-}
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.movie-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+    color: var(--color-text);
 }
 
 .trending-section {
@@ -102,6 +82,7 @@ const goToMovie = (id) => {
 .trending-section h2 {
     margin-bottom: 1.5rem;
     font-size: 1.8rem;
+    color: var(--color-text);
 }
 
 .movie-grid {
@@ -114,5 +95,6 @@ const goToMovie = (id) => {
     text-align: center;
     padding: 2rem;
     font-size: 1.2rem;
+    color: var(--color-text);
 }
 </style>
