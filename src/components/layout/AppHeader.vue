@@ -22,6 +22,18 @@
                     @clear="handleClearSearch"
                 />
                 <ThemeToggle />
+
+                <!-- Auth components -->
+                <div class="auth-section">
+                    <UserProfile v-if="user" />
+                    <button
+                        v-else
+                        @click="showAuthModal = true"
+                        class="auth-button"
+                    >
+                        Войти
+                    </button>
+                </div>
             </nav>
 
             <!-- Бургер-меню (мобильные) -->
@@ -46,8 +58,26 @@
                     @clear="handleClearSearch"
                 />
                 <ThemeToggle />
+
+                <!-- Auth components -->
+                <div class="auth-section-mobile">
+                    <UserProfile v-if="user" />
+                    <button
+                        v-else
+                        @click="showAuthModal = true; closeMenu()"
+                        class="auth-button"
+                    >
+                        Войти
+                    </button>
+                </div>
             </div>
         </div>
+
+        <!-- Auth Modal -->
+        <AuthModal
+            :is-open="showAuthModal"
+            @close="showAuthModal = false"
+        />
     </header>
 </template>
 
@@ -55,14 +85,19 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMediaStore } from '@/stores/mediaStore'
+import { useAuth } from '@/composables/useAuth'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
+import UserProfile from '@/components/auth/UserProfile.vue'
+import AuthModal from '@/components/auth/AuthModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const mediaStore = useMediaStore()
+const { user } = useAuth()
 const isMobileMenuOpen = ref(false)
 const searchQuery = ref('')
+const showAuthModal = ref(false)
 
 const favoritesCount = computed(() => mediaStore.favoritesCount)
 
@@ -227,6 +262,32 @@ watch(() => route.query.q, (newSearch) => {
     text-decoration: none;
     padding: 0.5rem 0;
     font-weight: var(--font-weight-medium);
+}
+
+.auth-section {
+    display: flex;
+    align-items: center;
+}
+
+.auth-button {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-button:hover {
+    background: var(--color-primary-dark);
+}
+
+.auth-section-mobile {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
 }
 
 /* Адаптивность */

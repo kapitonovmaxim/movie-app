@@ -2,9 +2,12 @@
     <div class="app">
         <AppHeader v-if="!isFullscreenPage" />
 
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component, route }">
             <transition name="fade" mode="out-in">
-                <component :is="Component" />
+                <ProtectedRoute v-if="route.meta.requiresAuth">
+                    <component :is="Component" />
+                </ProtectedRoute>
+                <component v-else :is="Component" />
             </transition>
         </router-view>
 
@@ -17,6 +20,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import ProtectedRoute from '@/components/auth/ProtectedRoute.vue'
 
 const route = useRoute()
 

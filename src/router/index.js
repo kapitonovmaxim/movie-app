@@ -6,7 +6,12 @@ const routes = [
   { path: '/movies', name: 'movies', component: () => import('@/views/MoviesView.vue') },
   { path: '/tv', name: 'tv', component: () => import('@/views/TVView.vue') },
   { path: '/search', name: 'search', component: () => import('@/views/SearchView.vue') },
-  { path: '/favorites', name: 'favorites', component: () => import('@/views/FavoritesView.vue') },
+  {
+    path: '/favorites',
+    name: 'favorites',
+    component: () => import('@/views/FavoritesView.vue'),
+    meta: { requiresAuth: true }
+  },
   { path: '/movie/:id', name: 'MovieDetails', component: () => import('@/views/MovieDetails.vue') },
   { path: '/tv/:id', name: 'TVDetails', component: () => import('@/views/TVDetails.vue') },
 ]

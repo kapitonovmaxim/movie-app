@@ -1,5 +1,69 @@
-# Vue 3 + Vite
+# Watchary - Movie App
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Современное веб-приложение для просмотра информации о фильмах и сериалах, построенное на Vue 3 с использованием Firebase Authentication.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 🚀 Возможности
+
+- 📺 Просмотр фильмов и сериалов
+- 🔍 Поиск по названию
+- ❤️ Избранное (требует авторизации)
+- 🌙 Темная/светлая тема
+- 🔐 Авторизация через Firebase
+  - Регистрация и вход по email/паролю
+  - Вход через Google
+- 📱 Адаптивный дизайн
+
+## 🛠️ Технологии
+
+- **Frontend**: Vue 3, Vite, Tailwind CSS
+- **State Management**: Pinia
+- **Routing**: Vue Router
+- **Authentication**: Firebase Auth
+- **API**: TMDB (The Movie Database)
+
+## 📦 Установка
+
+1. Клонируйте репозиторий:
+```bash
+git clone <repository-url>
+cd movie-app
+```
+
+2. Установите зависимости:
+```bash
+npm install
+```
+
+3. Настройте Firebase (см. [FIREBASE_SETUP.md](./FIREBASE_SETUP.md))
+
+4. Запустите приложение:
+```bash
+npm run dev
+```
+
+## 🔐 Настройка Firebase
+
+Для работы авторизации необходимо настроить Firebase. Подробные инструкции см. в файле [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).
+
+## 📁 Структура проекта
+
+```
+src/
+├── components/
+│   ├── auth/          # Компоненты авторизации
+│   ├── layout/        # Компоненты макета
+│   └── ui/           # UI компоненты
+├── composables/      # Vue composables
+├── firebase/         # Конфигурация Firebase
+├── router/           # Настройки маршрутизации
+├── services/         # API сервисы
+├── stores/           # Pinia stores
+├── utils/            # Утилиты
+└── views/            # Страницы приложения
+```
+
+## 🚀 Скрипты
+
+- `npm run dev` - Запуск в режиме разработки
+- `npm run build` - Сборка для продакшена
+- `npm run preview` - Предварительный просмотр сборки
