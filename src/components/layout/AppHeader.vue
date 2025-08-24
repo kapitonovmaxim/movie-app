@@ -11,7 +11,7 @@
             <nav class="nav-desktop">
                 <router-link to="/">Главная</router-link>
                 <router-link to="/movies">Фильмы</router-link>
-                <router-link to="/series">Сериалы</router-link>
+                <router-link to="/tv">Сериалы</router-link>
                 <router-link to="/favorites" class="favorites-link">
                     Избранное
                     <span v-if="favoritesCount > 0" class="favorites-count">{{ favoritesCount }}</span>
@@ -35,7 +35,7 @@
             <div class="nav-mobile" :class="{ active: isMobileMenuOpen }">
                 <router-link to="/" @click="closeMenu">Главная</router-link>
                 <router-link to="/movies" @click="closeMenu">Фильмы</router-link>
-                <router-link to="/series" @click="closeMenu">Сериалы</router-link>
+                <router-link to="/tv" @click="closeMenu">Сериалы</router-link>
                 <router-link to="/favorites" @click="closeMenu" class="favorites-link">
                     Избранное
                     <span v-if="favoritesCount > 0" class="favorites-count">{{ favoritesCount }}</span>
@@ -54,17 +54,17 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMovieStore } from '@/stores/movieStore'
+import { useMediaStore } from '@/stores/mediaStore'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 
 const route = useRoute()
 const router = useRouter()
-const movieStore = useMovieStore()
+const mediaStore = useMediaStore()
 const isMobileMenuOpen = ref(false)
 const searchQuery = ref('')
 
-const favoritesCount = computed(() => movieStore.favoritesCount)
+const favoritesCount = computed(() => mediaStore.favoritesCount)
 
 // Обработка поиска
 const handleSearch = (query) => {

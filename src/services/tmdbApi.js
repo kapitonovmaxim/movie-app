@@ -154,7 +154,7 @@ export default {
     }
   },
 
-  // === TV SERIES METHODS ===
+  // === TV METHODS ===
 
   // Получить трендовые сериалы
   async fetchTrendingTV() {

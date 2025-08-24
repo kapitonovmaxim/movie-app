@@ -1,5 +1,5 @@
 <template>
-    <div class="series-filters">
+    <div class="tv-filters">
         <!-- Сортировка -->
         <div class="filter-group">
             <label class="filter-label">Сортировка</label>
@@ -270,7 +270,7 @@ const removeGenreFilter = (genreId) => {
 </script>
 
 <style scoped>
-.series-filters {
+.tv-filters {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;

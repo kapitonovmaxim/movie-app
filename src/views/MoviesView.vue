@@ -25,10 +25,10 @@
                 </div>
 
                 <div v-else class="movie-list">
-                    <MovieCard
+                    <MediaCard
                         v-for="movie in movies"
                         :key="movie.id"
-                        :movie="movie"
+                        :media="movie"
                         :show-favorite-button="true"
                         @click="goToMovie(movie.id)"
                     />
@@ -49,7 +49,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import tmdbApi from '@/services/tmdbApi'
 import MovieFilters from '@/components/MovieFilters.vue'
-import MovieCard from '@/components/MovieCard.vue'
+import MediaCard from '@/components/MediaCard.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 
 const router = useRouter()

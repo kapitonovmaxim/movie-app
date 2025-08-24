@@ -1,15 +1,15 @@
 <template>
-    <div class="series-details" v-if="series">
-        <div class="series-backdrop" :style="backdropStyle"></div>
+    <div class="tv-details" v-if="tv">
+        <div class="tv-backdrop" :style="backdropStyle"></div>
 
-        <div class="series-content">
+        <div class="tv-content">
             <!-- Основная информация -->
-            <div class="series-header">
+            <div class="tv-header">
                 <div class="poster-container">
                     <img
                         :src="posterUrl"
-                        :alt="series.name"
-                        class="series-poster"
+                        :alt="tv.name"
+                        class="tv-poster"
                         @load="posterLoaded = true"
                         @error="posterError = true"
                         :class="{ 'loaded': posterLoaded, 'error': posterError }"
@@ -43,20 +43,20 @@
                     </div>
                 </div>
 
-                <div class="series-info">
-                    <h1 class="series-title">{{ series.name }}</h1>
+                <div class="tv-info">
+                    <h1 class="tv-title">{{ tv.name }}</h1>
 
-                    <div class="series-meta">
+                    <div class="tv-meta">
                         <span class="air-year">{{ airYear }}</span>
-                        <span class="seasons-count" v-if="series.number_of_seasons">{{ series.number_of_seasons }} сезонов</span>
-                        <span class="episodes-count" v-if="series.number_of_episodes">{{ series.number_of_episodes }} эпизодов</span>
-                        <span class="rating">⭐ {{ series.vote_average?.toFixed(1) }}</span>
-                        <span class="vote-count">({{ series.vote_count }} оценок)</span>
+                        <span class="seasons-count" v-if="tv.number_of_seasons">{{ tv.number_of_seasons }} сезонов</span>
+                        <span class="episodes-count" v-if="tv.number_of_episodes">{{ tv.number_of_episodes }} эпизодов</span>
+                        <span class="rating">⭐ {{ tv.vote_average?.toFixed(1) }}</span>
+                        <span class="vote-count">({{ tv.vote_count }} оценок)</span>
                     </div>
 
-                    <div class="genres" v-if="series.genres">
+                    <div class="genres" v-if="tv.genres">
                         <span
-                            v-for="genre in series.genres"
+                            v-for="genre in tv.genres"
                             :key="genre.id"
                             class="genre-tag"
                         >{{ genre.name }}</span>
@@ -79,9 +79,9 @@
             </div>
 
             <!-- Описание -->
-            <section class="series-description">
+            <section class="tv-description">
                 <h2>Описание</h2>
-                <p>{{ series.overview || 'Описание отсутствует' }}</p>
+                <p>{{ tv.overview || 'Описание отсутствует' }}</p>
             </section>
 
             <!-- Актерский состав -->
@@ -104,10 +104,10 @@
             </section>
 
             <!-- Сезоны -->
-            <section class="seasons-section" v-if="series.seasons && series.seasons.length > 0">
+            <section class="seasons-section" v-if="tv.seasons && tv.seasons.length > 0">
                 <h2>Сезоны</h2>
                 <div class="seasons-grid">
-                    <div v-for="season in series.seasons" :key="season.id" class="season-card">
+                    <div v-for="season in tv.seasons" :key="season.id" class="season-card">
                         <img
                             :src="seasonPosterUrl(season)"
                             :alt="season.name"
@@ -118,21 +118,20 @@
                             <h4>{{ season.name }}</h4>
                             <p v-if="season.air_date">{{ new Date(season.air_date).getFullYear() }}</p>
                             <p v-if="season.episode_count">{{ season.episode_count }} эпизодов</p>
-                            <p v-if="season.overview" class="season-overview">{{ season.overview }}</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- Похожие сериалы -->
-            <section class="similar-series" v-if="similarSeries.length > 0">
+            <section class="similar-tv" v-if="similarTV.length > 0">
                 <h2>Похожие сериалы</h2>
                 <div class="similar-grid">
-                    <SeriesCard
-                        v-for="similarShow in similarSeries.slice(0, 6)"
+                    <MediaCard
+                        v-for="similarShow in similarTV.slice(0, 6)"
                         :key="similarShow.id"
-                        :series="similarShow"
-                        @click="goToSeries(similarShow.id)"
+                        :media="similarShow"
+                        @click="goToTV(similarShow.id)"
                     />
                 </div>
             </section>
@@ -143,35 +142,31 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <strong>Статус:</strong>
-                        <span>{{ series.status }}</span>
+                        <span>{{ tv.status }}</span>
                     </div>
-                    <div class="info-item">
-                        <strong>Оригинальный язык:</strong>
-                        <span>{{ originalLanguage }}</span>
-                    </div>
-                    <div class="info-item" v-if="series.networks && series.networks.length > 0">
+                    <div class="info-item" v-if="tv.networks && tv.networks.length > 0">
                         <strong>Сеть:</strong>
-                        <span>{{ series.networks.map(network => network.name).join(', ') }}</span>
+                        <span>{{ tv.networks.map(network => network.name).join(', ') }}</span>
                     </div>
-                    <div class="info-item" v-if="series.type">
+                    <div class="info-item" v-if="tv.type">
                         <strong>Тип:</strong>
-                        <span>{{ series.type }}</span>
+                        <span>{{ tv.type }}</span>
                     </div>
-                    <div class="info-item" v-if="series.original_name && series.original_name !== series.name">
+                    <div class="info-item" v-if="tv.original_name && tv.original_name !== tv.name">
                         <strong>Оригинальное название:</strong>
-                        <span>{{ series.original_name }}</span>
+                        <span>{{ tv.original_name }}</span>
                     </div>
-                    <div class="info-item" v-if="series.first_air_date">
+                    <div class="info-item" v-if="tv.first_air_date">
                         <strong>Премьера:</strong>
-                        <span>{{ new Date(series.first_air_date).toLocaleDateString('ru-RU') }}</span>
+                        <span>{{ new Date(tv.first_air_date).toLocaleDateString('ru-RU') }}</span>
                     </div>
-                    <div class="info-item" v-if="series.last_air_date">
+                    <div class="info-item" v-if="tv.last_air_date">
                         <strong>Последний эпизод:</strong>
-                        <span>{{ new Date(series.last_air_date).toLocaleDateString('ru-RU') }}</span>
+                        <span>{{ new Date(tv.last_air_date).toLocaleDateString('ru-RU') }}</span>
                     </div>
-                    <div class="info-item" v-if="series.episode_run_time && series.episode_run_time.length > 0">
+                    <div class="info-item" v-if="tv.episode_run_time && tv.episode_run_time.length > 0">
                         <strong>Длительность эпизода:</strong>
-                        <span>{{ series.episode_run_time[0] }} мин</span>
+                        <span>{{ tv.episode_run_time[0] }} мин</span>
                     </div>
                 </div>
             </section>
@@ -199,16 +194,16 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMovieStore } from '@/stores/movieStore'
+import { useMediaStore } from '@/stores/mediaStore'
 import tmdbApi from '@/services/tmdbApi'
-import SeriesCard from '@/components/SeriesCard.vue'
+import MediaCard from '@/components/MediaCard.vue'
 import TrailerModal from '@/components/ui/TrailerModal.vue'
 
 const route = useRoute()
 const router = useRouter()
-const movieStore = useMovieStore()
+const mediaStore = useMediaStore()
 
-const series = ref(null)
+const tv = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const showTrailer = ref(false)
@@ -216,7 +211,7 @@ const posterLoaded = ref(false)
 const posterError = ref(false)
 
 // Получаем ID сериала из параметров маршрута
-const seriesId = computed(() => route.params.id)
+const tvId = computed(() => route.params.id)
 
 // Вычисляемые свойства
 const backdropStyle = computed(() => ({
@@ -224,29 +219,29 @@ const backdropStyle = computed(() => ({
 }))
 
 const backdropUrl = computed(() => {
-    if (!series.value?.backdrop_path) return '/placeholder-backdrop.jpg'
-    return `https://image.tmdb.org/t/p/w1280${series.value.backdrop_path}`
+    if (!tv.value?.backdrop_path) return '/placeholder-backdrop.jpg'
+    return `https://image.tmdb.org/t/p/w1280${tv.value.backdrop_path}`
 })
 
 const posterUrl = computed(() => {
-    if (!series.value?.poster_path) return '/placeholder-poster.jpg'
-    return `https://image.tmdb.org/t/p/w500${series.value.poster_path}`
+    if (!tv.value?.poster_path) return '/placeholder-poster.jpg'
+    return `https://image.tmdb.org/t/p/w500${tv.value.poster_path}`
 })
 
 const airYear = computed(() => {
-    return series.value?.first_air_date?.split('-')[0] || 'Неизвестно'
+    return tv.value?.first_air_date?.split('-')[0] || 'Неизвестно'
 })
 
 const cast = computed(() => {
-    return series.value?.credits?.cast || []
+    return tv.value?.credits?.cast || []
 })
 
 const mainCast = computed(() => {
     return cast.value.slice(0, 12) // Первые 12 актеров
 })
 
-const similarSeries = computed(() => {
-    return series.value?.similar?.results || []
+const similarTV = computed(() => {
+    return tv.value?.similar?.results || []
 })
 
 const hasTrailer = computed(() => {
@@ -254,12 +249,12 @@ const hasTrailer = computed(() => {
 })
 
 const trailerKey = computed(() => {
-    const trailer = series.value?.videos?.results?.find((video) => video.type === 'Trailer' && video.site === 'YouTube')
+    const trailer = tv.value?.videos?.results?.find((video) => video.type === 'Trailer' && video.site === 'YouTube')
     return trailer?.key || null
 })
 
 const isFavorited = computed(() => {
-    return movieStore.favorites.some((fav) => fav.id === series.value?.id)
+    return mediaStore.favorites.some((fav) => fav.id === tv.value?.id)
 })
 
 const originalLanguage = computed(() => {
@@ -273,20 +268,20 @@ const originalLanguage = computed(() => {
         ko: 'Корейский',
         zh: 'Китайский',
     }
-    return languages[series.value?.original_language] || series.value?.original_language || 'Неизвестно'
+    return languages[tv.value?.original_language] || tv.value?.original_language || 'Неизвестно'
 })
 
 // Методы
-const loadSeriesDetails = async () => {
+const loadTVDetails = async () => {
     loading.value = true
     error.value = null
 
     try {
-        const data = await tmdbApi.fetchTVShowDetails(seriesId.value)
-        series.value = data
-        movieStore.setCurrentMovie(data)
+        const data = await tmdbApi.fetchTVShowDetails(tvId.value)
+        tv.value = data
+        mediaStore.setCurrentMedia(data)
     } catch (err) {
-        console.error('Error loading series details:', err)
+        console.error('Error loading TV details:', err)
         error.value = 'Не удалось загрузить информацию о сериале'
     } finally {
         loading.value = false
@@ -300,17 +295,17 @@ const watchTrailer = () => {
 }
 
 const toggleFavorite = () => {
-    if (!series.value) return
+    if (!tv.value) return
 
     if (isFavorited.value) {
-        movieStore.removeFromFavorites(series.value.id)
+        mediaStore.removeFromFavorites(tv.value.id)
     } else {
-        movieStore.addToFavorites(series.value)
+        mediaStore.addToFavorites(tv.value)
     }
 }
 
-const goToSeries = (id) => {
-    router.push(`/series/${id}`)
+const goToTV = (id) => {
+    router.push(`/tv/${id}`)
 }
 
 const actorProfileUrl = (actor) => {
@@ -333,23 +328,23 @@ const handleSeasonImageError = (event) => {
 
 // Загрузка данных при монтировании и изменении ID
 onMounted(() => {
-    loadSeriesDetails()
+    loadTVDetails()
 })
 
-watch(seriesId, (newId) => {
+watch(tvId, (newId) => {
     if (newId) {
-        loadSeriesDetails()
+        loadTVDetails()
     }
 })
 </script>
 
 <style scoped>
-.series-details {
+.tv-details {
     min-height: 100vh;
     position: relative;
 }
 
-.series-backdrop {
+.tv-backdrop {
     position: fixed;
     top: 0;
     left: 0;
@@ -357,24 +352,26 @@ watch(seriesId, (newId) => {
     height: 100vh;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     z-index: -1;
+    filter: blur(8px);
     opacity: 0.3;
 }
 
-.series-content {
+.tv-content {
     position: relative;
     z-index: 1;
-    background: linear-gradient(transparent, var(--color-bg) 20%);
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.series-header {
+.tv-header {
     display: grid;
     grid-template-columns: 300px 1fr;
     gap: 2rem;
     margin-bottom: 3rem;
+    align-items: start;
 }
 
 .poster-container {
@@ -383,25 +380,23 @@ watch(seriesId, (newId) => {
     height: 450px;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: var(--color-bg-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-.series-poster {
+.tv-poster {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-.series-poster.loaded {
+.tv-poster.loaded {
     opacity: 1;
 }
 
-.series-poster.error {
-    opacity: 0.5;
+.tv-poster.error {
+    opacity: 0;
 }
 
 .poster-placeholder,
@@ -411,53 +406,47 @@ watch(seriesId, (newId) => {
     left: 0;
     width: 100%;
     height: 100%;
+}
+
+.tv-info {
     display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.series-info {
-    color: var(--color-text);
-}
-
-.series-title {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    font-weight: var(--font-weight-bold);
-    font-family: var(--font-family-heading);
-    color: var(--color-text);
-}
-
-.series-meta {
-    display: flex;
+    flex-direction: column;
     gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    align-items: center;
 }
 
-.series-meta span {
+.tv-title {
+    font-size: 3rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    margin: 0;
+    line-height: 1.2;
+    font-family: var(--font-family-heading);
+}
+
+.tv-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+.tv-meta span {
     padding: 0.25rem 0.75rem;
     background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text);
-}
-
-.rating {
-    color: var(--color-primary);
-    font-weight: var(--font-weight-semibold);
 }
 
 .genres {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
     flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .genre-tag {
-    padding: 0.25rem 0.75rem;
+    padding: 0.5rem 1rem;
     background: var(--color-primary);
     color: white;
     border-radius: var(--radius-md);
@@ -468,16 +457,16 @@ watch(seriesId, (newId) => {
 .action-buttons {
     display: flex;
     gap: 1rem;
-    flex-wrap: wrap;
+    margin-top: 1rem;
 }
 
 .btn {
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: var(--radius-md);
-    font-weight: var(--font-weight-semibold);
     cursor: pointer;
-    transition: all 0.3s ease;
+    font-weight: var(--font-weight-semibold);
+    transition: all 0.2s ease;
     font-family: var(--font-family-primary);
     font-size: 1rem;
 }
@@ -489,55 +478,53 @@ watch(seriesId, (newId) => {
 
 .btn-primary:hover {
     background: var(--color-primary-hover);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
-    background: var(--color-bg-secondary);
+    background: var(--color-bg);
     color: var(--color-text);
     border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-    background: var(--color-border);
+    background: var(--color-bg-tertiary);
 }
 
-.btn-secondary.btn-active {
+.btn-active {
     background: var(--color-primary);
-    border-color: var(--color-primary);
     color: white;
+    border-color: var(--color-primary);
 }
 
-/* Секции */
 section {
     margin-bottom: 3rem;
 }
 
 section h2 {
     font-size: 1.8rem;
-    margin-bottom: 1.5rem;
     font-weight: var(--font-weight-bold);
     color: var(--color-text);
-    border-bottom: 2px solid var(--color-primary);
-    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-family-heading);
 }
 
-.series-description p {
+.tv-description p {
     font-size: 1.1rem;
     line-height: 1.6;
     color: var(--color-text);
+    margin: 0;
 }
 
-/* Актерский состав */
 .cast-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
 }
 
 .cast-card {
     background: var(--color-bg-secondary);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     overflow: hidden;
     transition: transform 0.3s ease;
 }
@@ -558,37 +545,36 @@ section h2 {
 
 .cast-info h4 {
     margin: 0 0 0.5rem 0;
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
+    font-size: 0.9rem;
 }
 
 .cast-info p {
     margin: 0;
+    font-size: 0.8rem;
     color: var(--color-text-secondary);
-    font-size: 0.9rem;
 }
 
-/* Сезоны */
 .seasons-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
 }
 
 .season-card {
     background: var(--color-bg-secondary);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     overflow: hidden;
-    transition: transform 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .season-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .season-poster {
     width: 100%;
-    height: 150px;
+    height: 200px;
     object-fit: cover;
 }
 
@@ -598,34 +584,23 @@ section h2 {
 
 .season-info h4 {
     margin: 0 0 0.5rem 0;
+    font-size: 1rem;
     font-weight: var(--font-weight-semibold);
     color: var(--color-text);
 }
 
 .season-info p {
-    margin: 0 0 0.25rem 0;
-    color: var(--color-text-secondary);
+    margin: 0.25rem 0;
     font-size: 0.9rem;
+    color: var(--color-text-secondary);
 }
 
-.season-overview {
-    margin-top: 0.5rem !important;
-    font-size: 0.8rem !important;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* Похожие сериалы */
 .similar-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
 }
 
-/* Дополнительная информация */
 .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -638,7 +613,6 @@ section h2 {
     padding: 1rem;
     background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
-    border-left: 4px solid var(--color-primary);
 }
 
 .info-item strong {
@@ -650,7 +624,6 @@ section h2 {
     color: var(--color-text-secondary);
 }
 
-/* Загрузка и ошибки */
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -668,8 +641,8 @@ section h2 {
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 3px solid var(--color-border);
-    border-top: 3px solid var(--color-primary);
+    border: 4px solid var(--color-border);
+    border-top: 4px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -681,42 +654,48 @@ section h2 {
 }
 
 .error-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 50vh;
     text-align: center;
+    padding: 4rem 2rem;
     color: var(--color-text);
 }
 
 .error-state h2 {
+    font-size: 2rem;
     margin-bottom: 1rem;
     color: var(--color-error);
 }
 
 .error-state p {
+    font-size: 1.1rem;
     margin-bottom: 2rem;
     color: var(--color-text-secondary);
 }
 
-/* Адаптивность */
+/* Mobile responsive */
 @media (max-width: 768px) {
-    .series-header {
+    .tv-header {
         grid-template-columns: 1fr;
-        text-align: center;
+        gap: 1.5rem;
     }
 
-    .series-title {
+    .poster-container {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .tv-title {
         font-size: 2rem;
     }
 
     .action-buttons {
-        justify-content: center;
+        flex-direction: column;
     }
 
-    .cast-grid,
-    .seasons-grid,
+    .cast-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
     .similar-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
@@ -724,10 +703,28 @@ section h2 {
     .info-grid {
         grid-template-columns: 1fr;
     }
+}
 
-    .info-item {
+@media (max-width: 480px) {
+    .tv-content {
+        padding: 1rem;
+    }
+
+    .tv-title {
+        font-size: 1.8rem;
+    }
+
+    .tv-meta {
         flex-direction: column;
-        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .cast-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .similar-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 </style>

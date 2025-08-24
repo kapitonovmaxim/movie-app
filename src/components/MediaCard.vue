@@ -1,9 +1,9 @@
 <template>
-    <div class="movie-card" @click="handleCardClick">
+    <div class="media-card" @click="handleCardClick">
         <div class="poster-container">
             <img
                 :src="posterUrl"
-                :alt="movie.title"
+                :alt="mediaTitle"
                 class="poster"
                 @load="imageLoaded = true"
                 @error="imageError = true"
@@ -68,51 +68,86 @@
         </div>
 
         <div class="details">
-            <h3>{{ movie.title }}</h3>
-            <p class="year">{{ movie.release_date?.split('-')[0] }}</p>
-            <p class="rating">⭐ {{ movie.vote_average?.toFixed(1) }}</p>
+            <h3>{{ mediaTitle }}</h3>
+            <p class="year">{{ releaseYear }}</p>
+            <p class="rating">⭐ {{ media.vote_average?.toFixed(1) }}</p>
+            <p v-if="isTV && tvInfo" class="episodes">
+    {{ tvInfo }}
+</p>
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useMovieStore } from '@/stores/movieStore'
+import { useMediaStore } from '@/stores/mediaStore'
+import { detectMediaType } from '@/utils/mediaType'
 
 const props = defineProps({
-    movie: { type: Object, required: true },
-    showFavoriteButton: { type: Boolean, default: false },
+    media: { type: Object, required: true },
+    type: { type: String, default: null, validator: (value) => value === null || ['movie', 'tv'].includes(value) },
+    showFavoriteButton: { type: Boolean, default: true },
     showRemoveButton: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['click', 'remove-from-favorites'])
 
-const movieStore = useMovieStore()
+const mediaStore = useMediaStore()
 const imageLoaded = ref(false)
 const imageError = ref(false)
 
+const detectedType = computed(() => props.type || detectMediaType(props.media))
+const isTV = computed(() => detectedType.value === 'tv')
+const isMovie = computed(() => detectedType.value === 'movie')
+
 const posterUrl = computed(() =>
-    props.movie.poster_path ? `https://image.tmdb.org/t/p/w300${props.movie.poster_path}` : '/placeholder-poster.jpg'
+    props.media.poster_path ? `https://image.tmdb.org/t/p/w300${props.media.poster_path}` : '/placeholder-poster.jpg'
 )
 
-const isInFavorites = computed(() => movieStore.isInFavorites(props.movie.id))
+const mediaTitle = computed(() => {
+    if (isTV.value) {
+        return props.media.name
+    }
+    return props.media.title
+})
+
+const releaseYear = computed(() => {
+    const dateField = isTV.value ? 'first_air_date' : 'release_date'
+    return props.media[dateField]?.split('-')[0]
+})
+
+const tvInfo = computed(() => {
+    if (!isTV.value) return null
+
+    const seasons = props.media.number_of_seasons
+    const episodes = props.media.number_of_episodes
+
+    if (seasons && episodes) {
+        return `${seasons} сезон(ов), ${episodes} эпизод(ов)`
+    } else if (seasons) {
+        return `${seasons} сезон(ов)`
+    }
+    return null
+})
+
+const isInFavorites = computed(() => mediaStore.isInFavorites(props.media.id))
 
 const handleCardClick = () => {
     emit('click')
 }
 
 const toggleFavorite = () => {
-    movieStore.toggleFavorite(props.movie)
+    mediaStore.toggleFavorite(props.media)
 }
 
 const removeFromFavorites = () => {
-    movieStore.removeFromFavorites(props.movie.id)
-    emit('remove-from-favorites', props.movie.id)
+    mediaStore.removeFromFavorites(props.media.id)
+    emit('remove-from-favorites', props.media.id)
 }
 </script>
 
 <style scoped>
-.movie-card {
+.media-card {
     cursor: pointer;
     transition: transform 0.2s;
     background: var(--color-bg-secondary);
@@ -124,7 +159,7 @@ const removeFromFavorites = () => {
     flex-direction: column;
 }
 
-.movie-card:hover {
+.media-card:hover {
     transform: scale(1.05);
     box-shadow: var(--shadow-md);
 }
@@ -200,6 +235,12 @@ const removeFromFavorites = () => {
 .details .rating {
     font-weight: var(--font-weight-medium);
     color: var(--color-text);
+}
+
+.details .episodes {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
 }
 
 .favorite-btn,

@@ -6,10 +6,11 @@
                     <div>
                         <h1>Избранное</h1>
                         <p v-if="favorites.length === 0" class="empty-state">
-                            У вас пока нет избранных фильмов. Добавьте фильмы в избранное, чтобы они появились здесь.
+                            У вас пока нет избранного контента. Добавьте фильмы или сериалы в избранное, чтобы они появились здесь.
                         </p>
                         <p v-else class="favorites-count">
                             {{ favorites.length }} {{ getFavoritesCountText(favorites.length) }}
+                            {{ favoriteMovies.length > 0 && favoriteTV.length > 0 ? `(${favoriteMovies.length} фильмов, ${favoriteTV.length} сериалов)` : '' }}
                         </p>
                     </div>
                     <button
@@ -24,13 +25,12 @@
             </div>
 
             <div v-if="favorites.length > 0" class="favorites-grid">
-                <MovieCard
-                    v-for="movie in favorites"
-                    :key="movie.id"
-                    :movie="movie"
+                <MediaCard
+                    v-for="media in favorites"
+                    :key="media.id"
+                    :media="media"
                     @remove-from-favorites="removeFromFavorites"
-                    :show-remove-button="true"
-                    @click="goToMovie(movie.id)"
+                    @click="goToMedia(media)"
                 />
             </div>
 
@@ -41,11 +41,16 @@
                               fill="var(--color-primary)" opacity="0.3"/>
                     </svg>
                 </div>
-                <h3>Нет избранных фильмов</h3>
-                <p>Перейдите в раздел фильмов и добавьте понравившиеся фильмы в избранное</p>
-                <router-link to="/movies" class="btn-primary">
-                    Перейти к фильмам
-                </router-link>
+                <h3>Нет избранного контента</h3>
+                <p>Перейдите в раздел фильмов или сериалов и добавьте понравившийся контент в избранное</p>
+                <div class="empty-actions">
+                    <router-link to="/movies" class="btn-primary">
+                        Перейти к фильмам
+                    </router-link>
+                    <router-link to="/tv" class="btn-primary">
+                        Перейти к сериалам
+                    </router-link>
+                </div>
             </div>
         </div>
     </div>
@@ -53,32 +58,41 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useMovieStore } from '@/stores/movieStore'
-import MovieCard from '@/components/MovieCard.vue'
+import { useMediaStore } from '@/stores/mediaStore'
+import MediaCard from '@/components/MediaCard.vue'
 import { useRouter } from 'vue-router'
+import { detectMediaType } from '@/utils/mediaType'
 const router = useRouter()
 
-const movieStore = useMovieStore()
+const mediaStore = useMediaStore()
 
-const favorites = computed(() => movieStore.favorites)
+const favorites = computed(() => mediaStore.favorites)
+const favoriteMovies = computed(() => mediaStore.favoriteMovies)
+const favoriteTV = computed(() => mediaStore.favoriteTV)
 
-const removeFromFavorites = (movieId) => {
-    movieStore.removeFromFavorites(movieId)
+const removeFromFavorites = (mediaId) => {
+    mediaStore.removeFromFavorites(mediaId)
 }
 
 const clearFavorites = () => {
     if (confirm('Вы уверены, что хотите очистить все избранное?')) {
-        movieStore.clearFavorites()
+        mediaStore.clearFavorites()
     }
 }
 
 const getFavoritesCountText = (count) => {
-    if (count === 1) return 'фильм'
-    if (count >= 2 && count <= 4) return 'фильма'
-    return 'фильмов'
+    if (count === 1) return 'элемент'
+    if (count >= 2 && count <= 4) return 'элемента'
+    return 'элементов'
 }
-const goToMovie = (id) => {
-    router.push(`/movie/${id}`)
+
+const goToMedia = (media) => {
+    const mediaType = detectMediaType(media)
+    if (mediaType === 'tv') {
+    router.push(`/tv/${media.id}`)
+} else {
+        router.push(`/movie/${media.id}`)
+    }
 }
 </script>
 
@@ -178,6 +192,13 @@ const goToMovie = (id) => {
 
 .btn-primary:hover {
     background: var(--color-primary-dark);
+}
+
+.empty-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .clear-btn {

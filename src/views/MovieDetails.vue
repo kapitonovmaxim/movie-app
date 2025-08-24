@@ -106,10 +106,10 @@
             <section class="similar-movies" v-if="similarMovies.length > 0">
                 <h2>Похожие фильмы</h2>
                 <div class="similar-grid">
-                    <MovieCard
+                    <MediaCard
                         v-for="similarMovie in similarMovies.slice(0, 6)"
                         :key="similarMovie.id"
-                        :movie="similarMovie"
+                        :media="similarMovie"
                         @click="goToMovie(similarMovie.id)"
                     />
                 </div>
@@ -161,14 +161,14 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMovieStore } from '@/stores/movieStore'
+import { useMediaStore } from '@/stores/mediaStore'
 import tmdbApi from '@/services/tmdbApi'
-import MovieCard from '@/components/MovieCard.vue'
+import MediaCard from '@/components/MediaCard.vue'
 import TrailerModal from '@/components/ui/TrailerModal.vue'
 
 const route = useRoute()
 const router = useRouter()
-const movieStore = useMovieStore()
+const mediaStore = useMediaStore()
 
 const movie = ref(null)
 const loading = ref(true)
@@ -228,7 +228,7 @@ const trailerKey = computed(() => {
 })
 
 const isFavorited = computed(() => {
-    return movieStore.isInFavorites(movie.value?.id)
+    return mediaStore.isInFavorites(movie.value?.id)
 })
 
 const formattedBudget = computed(() => {
@@ -269,7 +269,7 @@ const loadMovieDetails = async () => {
     try {
         const data = await tmdbApi.fetchMovieDetails(movieId.value)
         movie.value = data
-        movieStore.setCurrentMovie(data)
+        mediaStore.setCurrentMedia(data)
     } catch (err) {
         console.error('Error loading movie details:', err)
         error.value = 'Не удалось загрузить информацию о фильме'
@@ -286,7 +286,7 @@ const watchTrailer = () => {
 
 const toggleFavorite = () => {
     if (!movie.value) return
-    movieStore.toggleFavorite(movie.value)
+    mediaStore.toggleFavorite(movie.value)
 }
 
 const goToMovie = (id) => {

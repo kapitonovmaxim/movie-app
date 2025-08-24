@@ -1,15 +1,15 @@
 <template>
-    <div class="series">
+    <div class="tv">
         <h1 class="page-title">Сериалы</h1>
 
-        <div class="series-layout">
+        <div class="tv-layout">
             <!-- Sidebar with filters -->
             <Sidebar>
-                <SeriesFilters @filter="handleFilter" />
+                <TVFilters @filter="handleFilter" />
             </Sidebar>
 
             <!-- Main content -->
-            <div class="series-content">
+            <div class="tv-content">
                 <div class="summary" v-if="totalResults > 0">
                     Найдено: {{ totalResults.toLocaleString() }}
                 </div>
@@ -19,17 +19,18 @@
                     <p>Загрузка сериалов...</p>
                 </div>
 
-                <div v-else-if="series.length === 0" class="no-results">
+                <div v-else-if="tv.length === 0" class="no-results">
                     <p>Сериалы не найдены</p>
                     <p>Попробуйте изменить фильтры</p>
                 </div>
 
-                <div v-else class="series-list">
-                    <SeriesCard
-                        v-for="show in series"
+                <div v-else class="tv-list">
+                    <MediaCard
+                        v-for="show in tv"
                         :key="show.id"
-                        :series="show"
-                        @click="goToSeries(show.id)"
+                        :media="show"
+                        :show-favorite-button="true"
+                        @click="goToTV(show.id)"
                     />
                 </div>
 
@@ -47,13 +48,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import tmdbApi from '@/services/tmdbApi'
-import SeriesFilters from '@/components/SeriesFilters.vue'
-import SeriesCard from '@/components/SeriesCard.vue'
+import TVFilters from '@/components/TVFilters.vue'
+import MediaCard from '@/components/MediaCard.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 
 const router = useRouter()
 
-const series = ref([])
+const tv = ref([])
 const totalResults = ref(0)
 const totalPages = ref(1)
 const currentPage = ref(1)
@@ -63,19 +64,19 @@ const loading = ref(false)
 const handleFilter = async (filters) => {
     currentFilters.value = filters
     currentPage.value = 1
-    await loadSeries()
+    await loadTV()
 }
 
 const changePage = async (page) => {
     currentPage.value = page
-    await loadSeries()
+    await loadTV()
 }
 
 onMounted(() => {
-    loadSeries()
+    loadTV()
 })
 
-const loadSeries = async () => {
+const loadTV = async () => {
     loading.value = true
 
     try {
@@ -85,13 +86,13 @@ const loadSeries = async () => {
         }
         const data = await tmdbApi.discoverTVShows(params)
 
-        series.value = data.results || []
+        tv.value = data.results || []
         totalResults.value = data.total_results || 0
         totalPages.value = data.total_pages || 1
 
     } catch (error) {
-        console.error('Error loading series:', error)
-        series.value = []
+        console.error('Error loading TV shows:', error)
+        tv.value = []
         totalResults.value = 0
         totalPages.value = 1
     } finally {
@@ -99,13 +100,13 @@ const loadSeries = async () => {
     }
 }
 
-const goToSeries = (id) => {
-    router.push(`/series/${id}`)
+const goToTV = (id) => {
+    router.push(`/tv/${id}`)
 }
 </script>
 
 <style scoped>
-.series {
+.tv {
     padding: 20px 0;
     color: var(--color-text);
 }
@@ -118,14 +119,14 @@ const goToSeries = (id) => {
     font-family: var(--font-family-heading);
 }
 
-.series-layout {
+.tv-layout {
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 2rem;
     align-items: start;
 }
 
-.series-content {
+.tv-content {
     min-height: 500px;
 }
 
@@ -170,7 +171,7 @@ const goToSeries = (id) => {
     margin: 0.5rem 0;
 }
 
-.series-list {
+.tv-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
@@ -214,7 +215,7 @@ const goToSeries = (id) => {
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-    .series-layout {
+    .tv-layout {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
@@ -224,18 +225,18 @@ const goToSeries = (id) => {
         font-size: 2rem;
     }
 
-    .series-list {
+    .tv-list {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .series {
+    .tv {
         padding: 10px 0;
     }
 
-    .series-list {
+    .tv-list {
         grid-template-columns: repeat(2, 1fr);
     }
 }

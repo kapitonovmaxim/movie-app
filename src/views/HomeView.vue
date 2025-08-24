@@ -7,12 +7,12 @@
         <section v-if="!bannerLoading" class="trending-section">
             <h2>Сейчас в тренде</h2>
             <div class="movie-grid">
-                <MovieCard
+                <MediaCard
                     v-for="movie in trendingMovies"
                     :key="movie.id"
-                    :movie="movie"
-                    :show-favorite-button="true"
+                    :media="movie"
                     @click="goToMovie(movie.id)"
+                    :show-favorite-button="true"
                 />
             </div>
         </section>
@@ -26,7 +26,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import tmdbApi from '@/services/tmdbApi'
-import MovieCard from '@/components/MovieCard.vue'
+import MediaCard from '@/components/MediaCard.vue'
 // import Pagination from '@/components/ui/Pagination.vue'
 import MovieBanner from '@/components/MovieBanner.vue'
 
@@ -69,7 +69,6 @@ const goToMovie = (id) => {
 <style scoped>
 .home {
     padding: 20px;
-    max-width: 1200px;
     color: var(--color-text);
 }
 

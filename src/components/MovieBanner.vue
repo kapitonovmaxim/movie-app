@@ -59,7 +59,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMovieStore } from '@/stores/movieStore'
+import { useMediaStore } from '@/stores/mediaStore'
 import TrailerModal from '@/components/ui/TrailerModal.vue'
 
 const props = defineProps({
@@ -75,7 +75,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const movieStore = useMovieStore()
+const mediaStore = useMediaStore()
 const isLoading = ref(false)
 const showTrailer = ref(false)
 const backdropLoaded = ref(false)
@@ -111,7 +111,7 @@ const truncatedOverview = computed(() => {
 })
 
 const isFavorited = computed(() => {
-    return movieStore.favorites.some((fav) => fav.id === props.movie.id)
+    return mediaStore.favorites.some((fav) => fav.id === props.movie.id)
 })
 
 const hasTrailer = computed(() => {
@@ -138,9 +138,9 @@ const toggleFavorite = async () => {
     isLoading.value = true
     try {
         if (isFavorited.value) {
-            await movieStore.removeFromFavorites(props.movie.id)
+            await mediaStore.removeFromFavorites(props.movie.id)
         } else {
-            await movieStore.addToFavorites(props.movie)
+            await mediaStore.addToFavorites(props.movie)
         }
     } catch (error) {
         console.error('Ошибка при работе с избранным:', error)

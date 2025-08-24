@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { useMovieStore } from './stores/movieStore'
+import { useMediaStore } from './stores/mediaStore'
 
 import App from './App.vue'
 
@@ -24,7 +24,7 @@ app.use(router)
 app.use(pinia)
 
 // Инициализируем избранное после создания приложения
-const movieStore = useMovieStore()
-movieStore.initFavorites()
+const mediaStore = useMediaStore()
+mediaStore.initFavorites()
 
 app.mount('#app')
