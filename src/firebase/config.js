@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 
-// Конфигурация Firebase - замените на ваши данные из Firebase Console
+// Конфигурация Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBGD82tnXp0gJwgmao6H9t_2lLOYbxoyQo",
   authDomain: "vue3-f4a67.firebaseapp.com",
