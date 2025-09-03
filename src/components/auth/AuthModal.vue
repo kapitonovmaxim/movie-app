@@ -20,6 +20,8 @@
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ isLogin ? 'Вход' : 'Регистрация' }}
         </h2>
+        <!-- test2@test.ru -->
+         <!-- 123123 -->
         <p class="text-gray-600 dark:text-gray-400 mt-2">
           {{ isLogin ? 'Войдите в свой аккаунт' : 'Создайте новый аккаунт' }}
         </p>
