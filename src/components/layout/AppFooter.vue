@@ -15,6 +15,15 @@
                 <div class="footer-section">
                     <h3>Навигация</h3>
                     <router-link to="/">Главная</router-link>
+                    <router-link to="/movies">Фильмы</router-link>
+                    <router-link to="/tv">Сериалы</router-link>
+                    <router-link to="/favorites" class="favorites-link">
+                        Избранное
+                        <span
+                            v-if="favoritesCount > 0"
+                            class="favorites-count"
+                        >{{ favoritesCount }}</span>
+                    </router-link>
                     <!-- <router-link to="/favorites">Избранное</router-link> -->
                     <!-- <router-link to="/about">О проекте</router-link> -->
                 </div>
